@@ -4,7 +4,9 @@ import android.os.Bundle
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.navigation.NavigationBarView
 import com.project.base.BaseActivity
+import com.project.base.BaseFragment
 
 class HomeActivity : BaseActivity() {
 
@@ -13,17 +15,22 @@ class HomeActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
-        if (savedInstanceState == null) {
-            val fragment = HomeFragment()
-            supportFragmentManager
-                .beginTransaction()
-                .add(R.id.activity_home_main_content, fragment)
-                .commit()
+        val homeFragment = HomeFragment()
+        val mapFragment = MapFragment()
+
+        findViewById<NavigationBarView>(R.id.activity_home_bottom_navigation).setOnItemSelectedListener {
+            when (it.itemId) {
+                R.id.home -> setCurrentFragment(homeFragment)
+                R.id.map -> setCurrentFragment(mapFragment)
+            }
+            true
         }
+    }
 
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.activity_home_main_content) as NavHostFragment
-        val navController = navHostFragment.navController
-        findViewById<BottomNavigationView>(R.id.activity_home_bottom_navigation).setupWithNavController(navController)
 
+    private fun setCurrentFragment(fragment: BaseFragment) =
+        supportFragmentManager.beginTransaction().apply {
+            replace(R.id.activity_home_main_content, fragment)
+            commit()
     }
 }
