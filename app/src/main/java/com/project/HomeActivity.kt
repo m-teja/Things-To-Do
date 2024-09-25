@@ -2,8 +2,6 @@ package com.project
 
 import android.os.Bundle
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.navigation.fragment.NavHostFragment
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationBarView
 import com.project.base.BaseActivity
 import com.project.base.BaseFragment
@@ -25,6 +23,8 @@ class HomeActivity : BaseActivity() {
             }
             true
         }
+
+        setCurrentFragment(homeFragment)
     }
 
 
