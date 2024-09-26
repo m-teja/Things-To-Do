@@ -15,11 +15,13 @@ class HomeActivity : BaseActivity() {
 
         val homeFragment = HomeFragment()
         val mapFragment = MapFragment()
+        val settingsFragment = SettingsFragment()
 
         findViewById<NavigationBarView>(R.id.activity_home_bottom_navigation).setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.home -> setCurrentFragment(homeFragment)
                 R.id.map -> setCurrentFragment(mapFragment)
+                R.id.settings -> setCurrentFragment(settingsFragment)
             }
             true
         }

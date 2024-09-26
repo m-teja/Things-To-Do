@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.androidx.databinding.runtime)
     implementation(libs.material)
     implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.play.services.maps)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
