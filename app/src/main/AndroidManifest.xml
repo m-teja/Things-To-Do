@@ -13,7 +13,7 @@
         android:theme="@style/Theme.Project.Starting"
         tools:targetApi="31">
         <activity
-            android:name="com.project.HomeActivity"
+            android:name="com.project.MainActivity"
             android:exported="true"
             android:label="@string/app_name">
             <intent-filter>
