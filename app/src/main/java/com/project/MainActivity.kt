@@ -44,7 +44,7 @@ class MainActivity : BaseActivity() {
 
     @Composable
     private fun MainScreen() {
-        val tabBarItems = listOf(TabBarItem.homeTab, TabBarItem.mapTab, TabBarItem.settingsTab)
+        val tabBarItems = listOf(TabBarItem.HomeTab, TabBarItem.MapTab, TabBarItem.SettingsTab)
 
         val navController = rememberNavController()
 
@@ -53,15 +53,15 @@ class MainActivity : BaseActivity() {
             color = MaterialTheme.colorScheme.background
         ) {
             Scaffold(bottomBar = { MainNavigationBar(tabBarItems, navController) }) { padding ->
-                NavHost(navController = navController, startDestination = TabBarItem.homeTab.title, modifier = Modifier.padding(padding)) {
-                    composable(TabBarItem.homeTab.title) {
-                        Text(TabBarItem.homeTab.title)
+                NavHost(navController = navController, startDestination = TabBarItem.HomeTab.route, modifier = Modifier.padding(padding)) {
+                    composable(TabBarItem.HomeTab.route) {
+                        Text(TabBarItem.HomeTab.route)
                     }
-                    composable(TabBarItem.mapTab.title) {
-                        Text(TabBarItem.mapTab.title)
+                    composable(TabBarItem.MapTab.route) {
+                        Text(TabBarItem.MapTab.route)
                     }
-                    composable(TabBarItem.settingsTab.title) {
-                        Text(TabBarItem.settingsTab.title)
+                    composable(TabBarItem.SettingsTab.route) {
+                        Text(TabBarItem.SettingsTab.route)
                     }
                 }
             }
@@ -84,12 +84,12 @@ class MainActivity : BaseActivity() {
                         onClick = {
                             if (selectedTabIndex != index) {
                                 selectedTabIndex = index
-                                navController.navigate(tabBarItem.title)
+                                navController.navigate(tabBarItem.route)
                             }
                         },
                         icon = { Icon(
                             imageVector = if (selectedTabIndex == index) tabBarItem.iconSelected else tabBarItem.iconUnSelected,
-                            contentDescription = tabBarItem.title
+                            contentDescription = tabBarItem.route
                         )},
                     )
                 }
