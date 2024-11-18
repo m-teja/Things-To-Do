@@ -1,6 +1,7 @@
 package com.project
 
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -19,13 +20,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.project.base.BaseActivity
+import com.project.model.Search
+import com.project.model.SearchViewModel
 
-class MainActivity : BaseActivity() {
+class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -43,10 +46,12 @@ class MainActivity : BaseActivity() {
     }
 
     @Composable
-    private fun MainScreen() {
+    private fun MainScreen(searchViewModel: SearchViewModel = viewModel()) {
         val tabBarItems = listOf(TabBarItem.HomeTab, TabBarItem.MapTab, TabBarItem.SettingsTab)
 
         val navController = rememberNavController()
+
+        searchViewModel.updateSearchQuery(Search(query = "fdjsklfjsdk", radius = 10))
 
         Surface(
             modifier = Modifier.fillMaxSize(),
@@ -55,10 +60,10 @@ class MainActivity : BaseActivity() {
             Scaffold(bottomBar = { MainNavigationBar(tabBarItems, navController) }) { padding ->
                 NavHost(navController = navController, startDestination = TabBarItem.HomeTab.route, modifier = Modifier.padding(padding)) {
                     composable(TabBarItem.HomeTab.route) {
-                        Text(TabBarItem.HomeTab.route)
+                        HomeScreen()
                     }
                     composable(TabBarItem.MapTab.route) {
-                        Text(TabBarItem.MapTab.route)
+                        MapScreen(searchViewModel)
                     }
                     composable(TabBarItem.SettingsTab.route) {
                         Text(TabBarItem.SettingsTab.route)

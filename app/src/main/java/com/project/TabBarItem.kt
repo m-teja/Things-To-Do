@@ -13,5 +13,4 @@ sealed class TabBarItem(val route: String, val iconSelected: ImageVector, val ic
     data object HomeTab : TabBarItem(route = "Home", iconSelected = Icons.Filled.Home, iconUnSelected = Icons.Outlined.Home)
     data object MapTab : TabBarItem(route = "Map", iconSelected = Icons.Filled.LocationOn, iconUnSelected = Icons.Outlined.LocationOn)
     data object SettingsTab : TabBarItem(route = "Settings", iconSelected = Icons.Filled.Settings, iconUnSelected =  Icons.Outlined.Settings)
-
 }
