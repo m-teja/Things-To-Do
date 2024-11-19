@@ -1,4 +1,4 @@
-package com.project
+package com.thingstodo
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home

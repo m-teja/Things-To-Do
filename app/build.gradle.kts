@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.project"
+    namespace = "com.thingstodo"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.project"
+        applicationId = "com.thingstodo"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.maps.compose)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)

@@ -1,4 +1,4 @@
-package com.project
+package com.thingstodo
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -25,8 +25,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.project.model.Search
-import com.project.model.SearchViewModel
+import com.thingstodo.model.Search
+import com.thingstodo.model.SearchViewModel
 
 class MainActivity : ComponentActivity() {
 
