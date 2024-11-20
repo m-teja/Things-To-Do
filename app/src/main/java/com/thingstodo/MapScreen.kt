@@ -107,10 +107,10 @@ fun Map(
 
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState
+        cameraPositionState = cameraPositionState,
     ) {
         userLocation.let {
-            cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 10f)
+            cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 15f)
         }
 
         placesOfInterest.forEach {

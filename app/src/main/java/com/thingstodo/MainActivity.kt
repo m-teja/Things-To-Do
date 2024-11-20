@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -29,6 +31,7 @@ import androidx.navigation.compose.rememberNavController
 import com.google.android.libraries.places.api.Places
 import com.thingstodo.model.Search
 import com.thingstodo.model.SearchViewModel
+import com.thingstodo.ui.AppTheme
 import com.thingstodo.utils.ManifestUtils
 
 class MainActivity : ComponentActivity() {
@@ -40,14 +43,18 @@ class MainActivity : ComponentActivity() {
         initPlaces()
 
         setContent {
-            MainScreen()
+            AppTheme {
+                MainScreen()
+            }
         }
     }
 
     @Preview
     @Composable
     private fun screenPreview() {
-        MainScreen()
+        AppTheme {
+            MainScreen()
+        }
     }
 
     @Composable
@@ -60,7 +67,6 @@ class MainActivity : ComponentActivity() {
 
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
         ) {
             Scaffold(bottomBar = { MainNavigationBar(tabBarItems, navController) }) { padding ->
                 NavHost(navController = navController, startDestination = TabBarItem.HomeTab.route, modifier = Modifier.padding(padding)) {
@@ -85,8 +91,6 @@ class MainActivity : ComponentActivity() {
         }
 
         NavigationBar (
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.primary,
             content = {
                 tabBarItems.forEachIndexed { index, tabBarItem ->
                     NavigationBarItem(
