@@ -3,6 +3,7 @@ package com.thingstodo
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,8 +23,12 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.OnSuccessListener
-import com.google.maps.android.compose.CameraPositionState
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.thingstodo.model.SearchViewModel
 
@@ -35,21 +40,22 @@ fun MapScreenPreview() {
 
 @Composable
 fun MapScreen(searchViewModel: SearchViewModel = viewModel()) {
-    val cameraPositionState = rememberCameraPositionState()
     val context = LocalContext.current
 
     val userLocation by searchViewModel.userLocation.collectAsState()
     val searchState by searchViewModel.searchQuery.collectAsState()
+    val placesOfInterest by searchViewModel.placesOfInterest.collectAsState()
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
-    HandleLocationPermissions(fusedLocationClient, searchViewModel::updateUserLocation)
-    Map(cameraPositionState, userLocation, fusedLocationClient)
+    UserLocationRequest(fusedLocationClient, searchViewModel::updateUserLocation, searchViewModel::updatePlacesOfInterest)
+    Map(userLocation, placesOfInterest, fusedLocationClient)
 }
 
 @Composable
-fun HandleLocationPermissions(
+fun UserLocationRequest(
     fusedLocationClient: FusedLocationProviderClient,
-    updateUserLocation: (LatLng) -> Unit
+    updateUserLocation: (LatLng) -> Unit,
+    updatePlacesOfInterest: (LatLng, PlacesClient) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -58,6 +64,7 @@ fun HandleLocationPermissions(
             // Update the user's location in the state
             val userLatLng = LatLng(it.latitude, it.longitude)
             updateUserLocation(userLatLng)
+            updatePlacesOfInterest(userLatLng, Places.createClient(context))
         }
     }
 
@@ -92,16 +99,30 @@ fun HandleLocationPermissions(
 
 @Composable
 fun Map(
-    cameraPositionState: CameraPositionState,
     userLocation: LatLng,
+    placesOfInterest: List<Place>,
     fusedLocationClient: FusedLocationProviderClient
 ) {
+    val cameraPositionState = rememberCameraPositionState()
+
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState
     ) {
         userLocation.let {
             cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 10f)
+        }
+
+        placesOfInterest.forEach {
+            val location = it.location
+            val title = it.displayName
+
+            if (location != null && title != null) {
+                Marker(
+                    state = MarkerState(location),
+                    title = it.displayName
+                )
+            }
         }
     }
 }

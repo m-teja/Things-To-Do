@@ -1,6 +1,7 @@
 package com.thingstodo
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -55,7 +56,7 @@ class MainActivity : ComponentActivity() {
 
         val navController = rememberNavController()
 
-        searchViewModel.updateSearchQuery(Search(query = "fdjsklfjsdk", radius = 10))
+        searchViewModel.updateSearchQuery(Search(query = "mcdonalds", radius = 10))
 
         Surface(
             modifier = Modifier.fillMaxSize(),
