@@ -2,6 +2,7 @@ package com.thingstodo
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Location
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,6 +20,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.tasks.OnSuccessListener
+import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.thingstodo.model.SearchViewModel
@@ -38,13 +42,32 @@ fun MapScreen(searchViewModel: SearchViewModel = viewModel()) {
     val searchState by searchViewModel.searchQuery.collectAsState()
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
+    HandleLocationPermissions(fusedLocationClient, searchViewModel::updateUserLocation)
+    Map(cameraPositionState, userLocation, fusedLocationClient)
+}
+
+@Composable
+fun HandleLocationPermissions(
+    fusedLocationClient: FusedLocationProviderClient,
+    updateUserLocation: (LatLng) -> Unit
+) {
+    val context = LocalContext.current
+
+    val onSuccessListener = OnSuccessListener<Location> {
+        it?.let {
+            // Update the user's location in the state
+            val userLatLng = LatLng(it.latitude, it.longitude)
+            updateUserLocation(userLatLng)
+        }
+    }
+
     // Handle permission requests for accessing fine location
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
             // Fetch the user's location and update the camera if permission is granted
-            searchViewModel.fetchUserLocation(context, fusedLocationClient)
+            fetchUserLocation(context, fusedLocationClient, onSuccessListener)
         } else {
             // Handle the case when permission is denied
             Toast.makeText(context, "Location permission is not granted.", Toast.LENGTH_LONG).show()
@@ -57,7 +80,7 @@ fun MapScreen(searchViewModel: SearchViewModel = viewModel()) {
             // Check if the location permission is already granted
             ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) -> {
                 // Fetch the user's location and update the camera
-                searchViewModel.fetchUserLocation(context, fusedLocationClient)
+                fetchUserLocation(context, fusedLocationClient, onSuccessListener)
             }
             else -> {
                 // Request the location permission if it has not been granted
@@ -65,6 +88,14 @@ fun MapScreen(searchViewModel: SearchViewModel = viewModel()) {
             }
         }
     }
+}
+
+@Composable
+fun Map(
+    cameraPositionState: CameraPositionState,
+    userLocation: LatLng,
+    fusedLocationClient: FusedLocationProviderClient
+) {
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState
@@ -75,40 +106,20 @@ fun MapScreen(searchViewModel: SearchViewModel = viewModel()) {
     }
 }
 
-@Composable
-fun CheckLocationPermissions(
+private fun fetchUserLocation(
     context: Context,
-    fetchUserLocation: (Context, FusedLocationProviderClient) -> Unit
+    fusedLocationClient: FusedLocationProviderClient,
+    onSuccessListener: OnSuccessListener<Location>
 ) {
-
-    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
-
-    // Handle permission requests for accessing fine location
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            // Fetch the user's location and update the camera if permission is granted
-            fetchUserLocation(context, fusedLocationClient)
-        } else {
-            // Handle the case when permission is denied
-            Toast.makeText(context, "Location permission is not granted.", Toast.LENGTH_LONG).show()
+    // Check if the location permission is granted
+    if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        try {
+            // Fetch the last known location
+            fusedLocationClient.lastLocation.addOnSuccessListener(onSuccessListener)
+        } catch (e: SecurityException) {
+            Toast.makeText(context, "Permission for location access was revoked: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
         }
+    } else {
+        Toast.makeText(context, "Location permission is not granted.", Toast.LENGTH_LONG).show()
     }
-
-    // Request the location permission when the composable is launched
-    LaunchedEffect(Unit) {
-        when (PackageManager.PERMISSION_GRANTED) {
-            // Check if the location permission is already granted
-            ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) -> {
-                // Fetch the user's location and update the camera
-                fetchUserLocation(context, fusedLocationClient)
-            }
-            else -> {
-                // Request the location permission if it has not been granted
-                permissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
-            }
-        }
-    }
-
 }

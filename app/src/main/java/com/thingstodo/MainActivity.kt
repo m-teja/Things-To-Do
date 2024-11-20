@@ -25,14 +25,18 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.android.libraries.places.api.Places
 import com.thingstodo.model.Search
 import com.thingstodo.model.SearchViewModel
+import com.thingstodo.utils.ManifestUtils
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        initPlaces()
 
         setContent {
             MainScreen()
@@ -100,5 +104,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
         )
+    }
+
+    private fun initPlaces() {
+        val apiKey = ManifestUtils.getApiKeyFromManifest(this)
+        if (!Places.isInitialized() && apiKey != null) {
+            Places.initializeWithNewPlacesApiEnabled(applicationContext, apiKey)
+        }
     }
 }
