@@ -1,9 +1,7 @@
 package com.thingstodo.model
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.CircularBounds
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.PlacesClient
@@ -13,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 
-class SearchViewModel : ViewModel() {
+class MapViewModel : ViewModel() {
     private val _searchQuery = MutableStateFlow(Search())
     val searchQuery: StateFlow<Search> = _searchQuery.asStateFlow()
 

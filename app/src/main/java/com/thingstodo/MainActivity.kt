@@ -1,15 +1,11 @@
 package com.thingstodo
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -30,7 +26,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.android.libraries.places.api.Places
 import com.thingstodo.model.Search
-import com.thingstodo.model.SearchViewModel
+import com.thingstodo.model.MapViewModel
 import com.thingstodo.ui.AppTheme
 import com.thingstodo.utils.ManifestUtils
 
@@ -58,12 +54,10 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun MainScreen(searchViewModel: SearchViewModel = viewModel()) {
+    private fun MainScreen() {
         val tabBarItems = listOf(TabBarItem.HomeTab, TabBarItem.MapTab, TabBarItem.SettingsTab)
 
         val navController = rememberNavController()
-
-        searchViewModel.updateSearchQuery(Search(query = "mcdonalds", radius = 10))
 
         Surface(
             modifier = Modifier.fillMaxSize(),
@@ -74,7 +68,7 @@ class MainActivity : ComponentActivity() {
                         HomeScreen()
                     }
                     composable(TabBarItem.MapTab.route) {
-                        MapScreen(searchViewModel)
+                        MapScreen()
                     }
                     composable(TabBarItem.SettingsTab.route) {
                         Text(TabBarItem.SettingsTab.route)

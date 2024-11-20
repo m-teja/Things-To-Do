@@ -3,7 +3,6 @@ package com.thingstodo
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,11 +25,12 @@ import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.PlacesClient
+import com.google.maps.android.compose.ComposeMapColorScheme
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
-import com.thingstodo.model.SearchViewModel
+import com.thingstodo.model.MapViewModel
 
 @Preview
 @Composable
@@ -39,15 +39,15 @@ fun MapScreenPreview() {
 }
 
 @Composable
-fun MapScreen(searchViewModel: SearchViewModel = viewModel()) {
+fun MapScreen(mapViewModel: MapViewModel = viewModel()) {
     val context = LocalContext.current
 
-    val userLocation by searchViewModel.userLocation.collectAsState()
-    val searchState by searchViewModel.searchQuery.collectAsState()
-    val placesOfInterest by searchViewModel.placesOfInterest.collectAsState()
+    val userLocation by mapViewModel.userLocation.collectAsState()
+    val searchState by mapViewModel.searchQuery.collectAsState()
+    val placesOfInterest by mapViewModel.placesOfInterest.collectAsState()
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
-    UserLocationRequest(fusedLocationClient, searchViewModel::updateUserLocation, searchViewModel::updatePlacesOfInterest)
+    UserLocationRequest(fusedLocationClient, mapViewModel::updateUserLocation, mapViewModel::updatePlacesOfInterest)
     Map(userLocation, placesOfInterest, fusedLocationClient)
 }
 
@@ -108,6 +108,7 @@ fun Map(
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
+        mapColorScheme = ComposeMapColorScheme.DARK
     ) {
         userLocation.let {
             cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 15f)
