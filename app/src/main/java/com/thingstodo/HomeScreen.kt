@@ -1,24 +1,19 @@
 package com.thingstodo
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -26,8 +21,8 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.thingstodo.datamodels.Activity
-import com.thingstodo.datamodels.Category
+import com.thingstodo.data.Activity
+import com.thingstodo.data.Category
 import com.thingstodo.model.HomeViewModel
 import com.thingstodo.model.OptionItem
 import com.thingstodo.ui.AppTheme
@@ -51,9 +46,11 @@ fun HomeScreen(homeViewModel: HomeViewModel = viewModel()) {
 
 @Composable
 fun OptionList(optionItems: List<OptionItem>) {
+//    val listState = rememberLazyListState()
     LazyColumn (
         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+//        state = listState
     ){
         items(optionItems) { optionItem ->
             Option(optionItem)
@@ -63,9 +60,22 @@ fun OptionList(optionItems: List<OptionItem>) {
 }
 
 @Composable
+fun rememberLazyListState(
+    initialFirstVisibleItemIndex: Int = 0,
+    initialFirstVisibleItemScrollOffset: Int = 0
+): LazyListState {
+    return rememberSaveable(saver = LazyListState.Saver) {
+        LazyListState(
+            initialFirstVisibleItemIndex, initialFirstVisibleItemScrollOffset
+        )
+    }
+}
+
+@Composable
 fun Option(optionItem: OptionItem) {
     Card (
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+//        onClick = searchOnMaps(optionItem)
     ) {
         Row (
             modifier = Modifier
@@ -94,6 +104,10 @@ fun Option(optionItem: OptionItem) {
             }
         }
     }
+}
+
+fun searchOnMaps(optionItem: OptionItem): () -> Unit {
+    TODO("Not yet implemented")
 }
 
 @Composable

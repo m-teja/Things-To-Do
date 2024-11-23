@@ -1,4 +1,4 @@
-package com.thingstodo.datamodels
+package com.thingstodo.data
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home

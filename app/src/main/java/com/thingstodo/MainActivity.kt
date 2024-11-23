@@ -24,7 +24,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.android.libraries.places.api.Places
-import com.thingstodo.datamodels.TabBarItem
+import com.thingstodo.data.TabBarItem
 import com.thingstodo.ui.AppTheme
 import com.thingstodo.utils.ManifestUtils
 
@@ -61,7 +61,11 @@ class MainActivity : ComponentActivity() {
             modifier = Modifier.fillMaxSize(),
         ) {
             Scaffold(bottomBar = { MainNavigationBar(tabBarItems, navController) }) { padding ->
-                NavHost(navController = navController, startDestination = TabBarItem.HomeTab.route, modifier = Modifier.padding(padding)) {
+                NavHost(
+                    navController = navController,
+                    startDestination = TabBarItem.HomeTab.route,
+                    modifier = Modifier.padding(padding),
+                ) {
                     composable(TabBarItem.HomeTab.route) {
                         HomeScreen()
                     }

@@ -69,6 +69,7 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.navigation.compose)
     implementation("com.google.code.gson:gson:2.8.5")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
     implementation(libs.maps.compose)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)

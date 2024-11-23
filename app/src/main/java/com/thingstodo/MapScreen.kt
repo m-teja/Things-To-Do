@@ -3,6 +3,7 @@ package com.thingstodo
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -39,7 +40,8 @@ fun MapScreenPreview() {
 }
 
 @Composable
-fun MapScreen(mapViewModel: MapViewModel = viewModel()) {
+fun MapScreen(
+    mapViewModel: MapViewModel = viewModel()) {
     val context = LocalContext.current
 
     val userLocation by mapViewModel.userLocation.collectAsState()
@@ -108,7 +110,7 @@ fun Map(
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
-        mapColorScheme = ComposeMapColorScheme.DARK
+        mapColorScheme = ComposeMapColorScheme.DARK,
     ) {
         userLocation.let {
             cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 15f)

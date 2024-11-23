@@ -1,4 +1,4 @@
-package com.thingstodo.datamodels
+package com.thingstodo.data
 
 data class OptionData(
     val categories: List<Category>
