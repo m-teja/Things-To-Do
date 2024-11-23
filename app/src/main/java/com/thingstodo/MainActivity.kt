@@ -19,14 +19,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.android.libraries.places.api.Places
-import com.thingstodo.model.Search
-import com.thingstodo.model.MapViewModel
+import com.thingstodo.datamodels.TabBarItem
 import com.thingstodo.ui.AppTheme
 import com.thingstodo.utils.ManifestUtils
 
