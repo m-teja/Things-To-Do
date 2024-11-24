@@ -23,9 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.thingstodo.data.Activity
 import com.thingstodo.data.Category
-import com.thingstodo.data.HomeRoute
 import com.thingstodo.model.HomeViewModel
-import com.thingstodo.model.MapViewModel
 import com.thingstodo.model.OptionItem
 import com.thingstodo.ui.AppTheme
 import com.thingstodo.utils.JsonParser
@@ -34,29 +32,31 @@ import com.thingstodo.utils.JsonParser
 @Composable
 fun HomeScreenPreview() {
     AppTheme {
-        HomeScreen()
+        HomeScreen(onNavigateToMapScreen = {a, b -> })
     }
 }
 
 @Composable
-fun HomeScreen(homeViewModel: HomeViewModel = viewModel()) {
+fun HomeScreen(
+    homeViewModel: HomeViewModel = viewModel(),
+    onNavigateToMapScreen: (String, Int) -> Unit
+) {
     val optionItems = getOptionItemListFromJson(LocalContext.current)
 
     homeViewModel.updateOptionItemList(optionItems)
-    OptionList(homeViewModel.optionItemList.value)
+    OptionList(optionItems, onNavigateToMapScreen)
 }
 
 @Composable
-fun OptionList(optionItems: List<OptionItem>) {
-//    val listState = rememberLazyListState()
+fun OptionList(
+    optionItems: List<OptionItem>, onNavigateToMapScreen: (String, Int) -> Unit
+) {
     LazyColumn (
         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
-//        state = listState
     ){
         items(optionItems) { optionItem ->
-            Option(optionItem)
-
+            Option(optionItem, onNavigateToMapScreen)
         }
     }
 }
@@ -74,10 +74,13 @@ fun rememberLazyListState(
 }
 
 @Composable
-fun Option(optionItem: OptionItem) {
+fun Option(
+    optionItem: OptionItem,
+    onNavigateToMapScreen: (String, Int) -> Unit
+) {
     Card (
         modifier = Modifier.fillMaxWidth(),
-//        onClick = searchOnMaps(optionItem)
+        onClick = { onNavigateToMapScreen(optionItem.activity, 10) }
     ) {
         Row (
             modifier = Modifier
@@ -106,10 +109,6 @@ fun Option(optionItem: OptionItem) {
             }
         }
     }
-}
-
-fun searchOnMaps(optionItem: OptionItem): () -> Unit {
-    TODO("Not yet implemented")
 }
 
 @Composable

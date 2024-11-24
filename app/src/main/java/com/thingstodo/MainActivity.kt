@@ -34,6 +34,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.google.android.libraries.places.api.Places
 import com.thingstodo.data.HomeRoute
 import com.thingstodo.data.MapRoute
@@ -80,10 +81,15 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.padding(padding),
                 ) {
                     composable<HomeRoute> {
-                        HomeScreen()
+                        HomeScreen(
+                            onNavigateToMapScreen = { query, radius ->
+                                navController.navigate(route = MapRoute(query, radius))
+                            }
+                        )
                     }
-                    composable<MapRoute> {
-                        MapScreen()
+                    composable<MapRoute> { backStackEntry ->
+                        val mapRoute: MapRoute = backStackEntry.toRoute()
+                        MapScreen(Search(mapRoute.query, mapRoute.radius))
                     }
                     composable<SettingsRoute> {
                         Text("settings")

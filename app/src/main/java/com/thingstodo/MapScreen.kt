@@ -41,13 +41,14 @@ import com.thingstodo.model.Search
 @Preview
 @Composable
 fun MapScreenPreview() {
-    MapScreen()
+    MapScreen(search = Search())
 }
 
 @Composable
 fun MapScreen(
+    search: Search,
     mapViewModel: MapViewModel = viewModel(
-        factory = MapViewModelFactory(Search("mcdonalds", 10)))
+        factory = MapViewModelFactory(search))
 ) {
     val context = LocalContext.current
 
