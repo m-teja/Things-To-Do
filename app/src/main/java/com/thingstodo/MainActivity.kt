@@ -5,6 +5,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -19,12 +26,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.android.libraries.places.api.Places
-import com.thingstodo.data.TabBarItem
+import com.thingstodo.data.HomeRoute
+import com.thingstodo.data.MapRoute
+import com.thingstodo.data.ScreenLevelRoute
+import com.thingstodo.data.SettingsRoute
+import com.thingstodo.model.Search
 import com.thingstodo.ui.AppTheme
 import com.thingstodo.utils.ManifestUtils
 
@@ -53,27 +68,25 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun MainScreen() {
-        val tabBarItems = listOf(TabBarItem.HomeTab, TabBarItem.MapTab, TabBarItem.SettingsTab)
-
         val navController = rememberNavController()
 
         Surface(
             modifier = Modifier.fillMaxSize(),
         ) {
-            Scaffold(bottomBar = { MainNavigationBar(tabBarItems, navController) }) { padding ->
+            Scaffold(bottomBar = { MainNavigationBar(navController) }) { padding ->
                 NavHost(
                     navController = navController,
-                    startDestination = TabBarItem.HomeTab.route,
+                    startDestination = HomeRoute,
                     modifier = Modifier.padding(padding),
                 ) {
-                    composable(TabBarItem.HomeTab.route) {
+                    composable<HomeRoute> {
                         HomeScreen()
                     }
-                    composable(TabBarItem.MapTab.route) {
+                    composable<MapRoute> {
                         MapScreen()
                     }
-                    composable(TabBarItem.SettingsTab.route) {
-                        Text(TabBarItem.SettingsTab.route)
+                    composable<SettingsRoute> {
+                        Text("settings")
                     }
                 }
             }
@@ -81,30 +94,63 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun MainNavigationBar(tabBarItems: List<TabBarItem>, navController: NavHostController) {
+    private fun MainNavigationBar(navController: NavHostController) {
+        val screenLevelRoutes = listOf(
+            ScreenLevelRoute(name = "Home", route = HomeRoute, iconSelected = Icons.Filled.Home, iconUnSelected = Icons.Outlined.Home),
+            ScreenLevelRoute(name = "Map", route = MapRoute("mcdonalds", 10), iconSelected = Icons.Filled.LocationOn, iconUnSelected = Icons.Outlined.LocationOn),
+            ScreenLevelRoute(name = "Settings", route = SettingsRoute, iconSelected = Icons.Filled.Settings, iconUnSelected =  Icons.Outlined.Settings)
+        )
+
         var selectedTabIndex by rememberSaveable {
             mutableIntStateOf(0)
         }
 
-        NavigationBar (
-            content = {
-                tabBarItems.forEachIndexed { index, tabBarItem ->
-                    NavigationBarItem(
-                        selected = selectedTabIndex == index,
-                        onClick = {
-                            if (selectedTabIndex != index) {
-                                selectedTabIndex = index
-                                navController.navigate(tabBarItem.route)
+        NavigationBar {
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentDestination = navBackStackEntry?.destination
+            screenLevelRoutes.forEach { screenLevelRoute ->
+                NavigationBarItem (
+                    icon = { Icon(screenLevelRoute.iconUnSelected, contentDescription = screenLevelRoute.name) },
+                    label = { Text(screenLevelRoute.name) },
+                    selected = currentDestination?.hierarchy?.any { it.hasRoute(screenLevelRoute.route::class) } == true,
+                    onClick = {
+                        navController.navigate(screenLevelRoute.route) {
+                            // Pop up to the start destination of the graph to
+                            // avoid building up a large stack of destinations
+                            // on the back stack as users select items
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
                             }
-                        },
-                        icon = { Icon(
-                            imageVector = if (selectedTabIndex == index) tabBarItem.iconSelected else tabBarItem.iconUnSelected,
-                            contentDescription = tabBarItem.route
-                        )},
-                    )
-                }
+                            // Avoid multiple copies of the same destination when
+                            // reselecting the same item
+                            launchSingleTop = true
+                            // Restore state when reselecting a previously selected item
+                            restoreState = true
+                        }
+                    }
+                )
             }
-        )
+        }
+
+//        NavigationBar (
+//            content = {
+//                screenLevelRoutes.forEachIndexed { index, tabBarItem ->
+//                    NavigationBarItem(
+//                        selected = selectedTabIndex == index,
+//                        onClick = {
+//                            if (selectedTabIndex != index) {
+//                                selectedTabIndex = index
+//                                navController.navigate(tabBarItem.name)
+//                            }
+//                        },
+//                        icon = { Icon(
+//                            imageVector = if (selectedTabIndex == index) tabBarItem.iconSelected else tabBarItem.iconUnSelected,
+//                            contentDescription = tabBarItem.name
+//                        )},
+//                    )
+//                }
+//            }
+//        )
     }
 
     private fun initPlaces() {

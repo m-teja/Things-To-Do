@@ -23,7 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.thingstodo.data.Activity
 import com.thingstodo.data.Category
+import com.thingstodo.data.HomeRoute
 import com.thingstodo.model.HomeViewModel
+import com.thingstodo.model.MapViewModel
 import com.thingstodo.model.OptionItem
 import com.thingstodo.ui.AppTheme
 import com.thingstodo.utils.JsonParser

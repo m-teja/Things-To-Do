@@ -1,6 +1,7 @@
 package com.thingstodo.model
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.CircularBounds
 import com.google.android.libraries.places.api.model.Place
@@ -9,10 +10,11 @@ import com.google.android.libraries.places.api.net.SearchByTextRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.serialization.Serializable
 
 
-class MapViewModel : ViewModel() {
-    private val _searchQuery = MutableStateFlow(Search())
+class MapViewModel(search: Search) : ViewModel() {
+    private val _searchQuery = MutableStateFlow(search)
     val searchQuery: StateFlow<Search> = _searchQuery.asStateFlow()
 
     private val _userLocation = MutableStateFlow(LatLng(0.0, 0.0))
@@ -48,6 +50,14 @@ class MapViewModel : ViewModel() {
 
 }
 
+class MapViewModelFactory(private val search: Search) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return MapViewModel(search) as T
+    }
+}
+
+@Serializable
 data class Search(
     val query : String = "",
     val radius : Int = 0,

@@ -31,7 +31,10 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.thingstodo.data.MapRoute
 import com.thingstodo.model.MapViewModel
+import com.thingstodo.model.MapViewModelFactory
+import com.thingstodo.model.Search
 
 @Preview
 @Composable
@@ -41,13 +44,16 @@ fun MapScreenPreview() {
 
 @Composable
 fun MapScreen(
-    mapViewModel: MapViewModel = viewModel()) {
+    mapViewModel: MapViewModel = viewModel(
+        factory = MapViewModelFactory(Search("mcdonalds", 10)))
+) {
     val context = LocalContext.current
 
     val userLocation by mapViewModel.userLocation.collectAsState()
     val searchState by mapViewModel.searchQuery.collectAsState()
     val placesOfInterest by mapViewModel.placesOfInterest.collectAsState()
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
 
     UserLocationRequest(fusedLocationClient, mapViewModel::updateUserLocation, mapViewModel::updatePlacesOfInterest)
     Map(userLocation, placesOfInterest, fusedLocationClient)
