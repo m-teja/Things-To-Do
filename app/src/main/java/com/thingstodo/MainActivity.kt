@@ -96,21 +96,17 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun MainNavigationBar(navController: NavHostController) {
         val screenLevelRoutes = listOf(
-            ScreenLevelRoute(name = "Home", route = HomeRoute, iconSelected = Icons.Filled.Home, iconUnSelected = Icons.Outlined.Home),
-            ScreenLevelRoute(name = "Map", route = MapRoute("mcdonalds", 10), iconSelected = Icons.Filled.LocationOn, iconUnSelected = Icons.Outlined.LocationOn),
-            ScreenLevelRoute(name = "Settings", route = SettingsRoute, iconSelected = Icons.Filled.Settings, iconUnSelected =  Icons.Outlined.Settings)
+            ScreenLevelRoute(name = "Home", route = HomeRoute, icon = Icons.Outlined.Home),
+            ScreenLevelRoute(name = "Map", route = MapRoute("mcdonalds", 10), icon = Icons.Outlined.LocationOn),
+            ScreenLevelRoute(name = "Settings", route = SettingsRoute, icon =  Icons.Outlined.Settings)
         )
-
-        var selectedTabIndex by rememberSaveable {
-            mutableIntStateOf(0)
-        }
 
         NavigationBar {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentDestination = navBackStackEntry?.destination
             screenLevelRoutes.forEach { screenLevelRoute ->
                 NavigationBarItem (
-                    icon = { Icon(screenLevelRoute.iconUnSelected, contentDescription = screenLevelRoute.name) },
+                    icon = { Icon(screenLevelRoute.icon, contentDescription = screenLevelRoute.name) },
                     label = { Text(screenLevelRoute.name) },
                     selected = currentDestination?.hierarchy?.any { it.hasRoute(screenLevelRoute.route::class) } == true,
                     onClick = {
@@ -131,26 +127,6 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
-
-//        NavigationBar (
-//            content = {
-//                screenLevelRoutes.forEachIndexed { index, tabBarItem ->
-//                    NavigationBarItem(
-//                        selected = selectedTabIndex == index,
-//                        onClick = {
-//                            if (selectedTabIndex != index) {
-//                                selectedTabIndex = index
-//                                navController.navigate(tabBarItem.name)
-//                            }
-//                        },
-//                        icon = { Icon(
-//                            imageVector = if (selectedTabIndex == index) tabBarItem.iconSelected else tabBarItem.iconUnSelected,
-//                            contentDescription = tabBarItem.name
-//                        )},
-//                    )
-//                }
-//            }
-//        )
     }
 
     private fun initPlaces() {
