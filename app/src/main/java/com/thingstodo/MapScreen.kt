@@ -12,7 +12,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,7 +34,6 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
-import com.thingstodo.data.MapRoute
 import com.thingstodo.model.MapViewModel
 import com.thingstodo.model.MapViewModelFactory
 import com.thingstodo.model.Search
@@ -55,13 +57,14 @@ fun MapScreen(
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
 
-    UserLocationRequest(fusedLocationClient, mapViewModel::updateUserLocation, mapViewModel::updatePlacesOfInterest)
+    UserLocationRequest(fusedLocationClient, userLocation, mapViewModel::updateUserLocation, mapViewModel::updatePlacesOfInterest)
     Map(userLocation, placesOfInterest, fusedLocationClient)
 }
 
 @Composable
 fun UserLocationRequest(
     fusedLocationClient: FusedLocationProviderClient,
+    userLocation: LatLng?,
     updateUserLocation: (LatLng) -> Unit,
     updatePlacesOfInterest: (LatLng, PlacesClient) -> Unit
 ) {
@@ -95,7 +98,9 @@ fun UserLocationRequest(
             // Check if the location permission is already granted
             ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) -> {
                 // Fetch the user's location and update the camera
-                fetchUserLocation(context, fusedLocationClient, onSuccessListener)
+                if (userLocation == null) {
+                    fetchUserLocation(context, fusedLocationClient, onSuccessListener)
+                }
             }
             else -> {
                 // Request the location permission if it has not been granted
@@ -107,19 +112,23 @@ fun UserLocationRequest(
 
 @Composable
 fun Map(
-    userLocation: LatLng,
+    userLocation: LatLng?,
     placesOfInterest: List<Place>,
     fusedLocationClient: FusedLocationProviderClient
 ) {
     val cameraPositionState = rememberCameraPositionState()
+    var hasSetInitialLocation by rememberSaveable { mutableStateOf(false) }
 
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
         mapColorScheme = ComposeMapColorScheme.DARK,
     ) {
-        userLocation.let {
-            cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 15f)
+        if (!hasSetInitialLocation) {
+            userLocation?.let {
+                cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 15f)
+                hasSetInitialLocation = true
+            }
         }
 
         placesOfInterest.forEach {

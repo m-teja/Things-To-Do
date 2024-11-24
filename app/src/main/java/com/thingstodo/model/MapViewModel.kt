@@ -17,8 +17,8 @@ class MapViewModel(search: Search) : ViewModel() {
     private val _searchQuery = MutableStateFlow(search)
     val searchQuery: StateFlow<Search> = _searchQuery.asStateFlow()
 
-    private val _userLocation = MutableStateFlow(LatLng(0.0, 0.0))
-    val userLocation: StateFlow<LatLng> = _userLocation.asStateFlow()
+    private val _userLocation = MutableStateFlow<LatLng?>(null)
+    val userLocation: StateFlow<LatLng?> = _userLocation.asStateFlow()
 
     private val _placesOfInterest = MutableStateFlow<List<Place>>(emptyList())
     val placesOfInterest: StateFlow<List<Place>> = _placesOfInterest.asStateFlow()
