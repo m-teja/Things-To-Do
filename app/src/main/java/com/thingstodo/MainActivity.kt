@@ -6,9 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Settings
@@ -19,13 +16,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -35,25 +33,33 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.google.android.gms.location.LocationServices
 import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.net.PlacesClient
+import com.thingstodo.screens.HomeScreen
+import com.thingstodo.screens.MapScreen
 import com.thingstodo.data.HomeRoute
 import com.thingstodo.data.MapRoute
 import com.thingstodo.data.ScreenLevelRoute
 import com.thingstodo.data.SettingsRoute
+import com.thingstodo.model.MapViewModel
+import com.thingstodo.model.MapViewModelFactory
 import com.thingstodo.model.Search
+import com.thingstodo.screens.UserLocationRequest
 import com.thingstodo.ui.AppTheme
 import com.thingstodo.utils.ManifestUtils
 
 class MainActivity : ComponentActivity() {
 
+    private lateinit var placesClient: PlacesClient
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        initPlaces()
-
         setContent {
             AppTheme {
+                initPlaces()
                 MainScreen()
             }
         }
@@ -69,8 +75,10 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun MainScreen() {
+        val context = LocalContext.current
         val navController = rememberNavController()
-
+        val mapViewModel: MapViewModel = viewModel(factory = MapViewModelFactory(Search()))
+        RequestPermissions(mapViewModel)
         Surface(
             modifier = Modifier.fillMaxSize(),
         ) {
@@ -83,13 +91,20 @@ class MainActivity : ComponentActivity() {
                     composable<HomeRoute> {
                         HomeScreen(
                             onNavigateToMapScreen = { query, radius ->
-                                navController.navigate(route = MapRoute(query, radius))
+                                mapViewModel.updateSearchQuery(Search(query, radius))
+                                mapViewModel.updatePlacesOfInterest(placesClient)
+                                navController.navigate(route = MapRoute(query, radius)) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
                         )
                     }
-                    composable<MapRoute> { backStackEntry ->
-                        val mapRoute: MapRoute = backStackEntry.toRoute()
-                        MapScreen(Search(mapRoute.query, mapRoute.radius))
+                    composable<MapRoute> {
+                        MapScreen(mapViewModel = mapViewModel)
                     }
                     composable<SettingsRoute> {
                         Text("settings")
@@ -117,16 +132,10 @@ class MainActivity : ComponentActivity() {
                     selected = currentDestination?.hierarchy?.any { it.hasRoute(screenLevelRoute.route::class) } == true,
                     onClick = {
                         navController.navigate(screenLevelRoute.route) {
-                            // Pop up to the start destination of the graph to
-                            // avoid building up a large stack of destinations
-                            // on the back stack as users select items
                             popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true
                             }
-                            // Avoid multiple copies of the same destination when
-                            // reselecting the same item
                             launchSingleTop = true
-                            // Restore state when reselecting a previously selected item
                             restoreState = true
                         }
                     }
@@ -135,10 +144,24 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @Composable
+    private fun RequestPermissions(mapViewModel: MapViewModel) {
+        val context = LocalContext.current
+        val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+        val userLocation by mapViewModel.userLocation.collectAsState()
+
+        UserLocationRequest(
+            fusedLocationClient = fusedLocationClient,
+            userLocation = userLocation,
+            updateUserLocation = mapViewModel::updateUserLocation,
+        )
+    }
+
     private fun initPlaces() {
         val apiKey = ManifestUtils.getApiKeyFromManifest(this)
         if (!Places.isInitialized() && apiKey != null) {
             Places.initializeWithNewPlacesApiEnabled(applicationContext, apiKey)
+            placesClient = Places.createClient(this)
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.thingstodo
+package com.thingstodo.screens
 
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
@@ -7,13 +7,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -62,25 +61,16 @@ fun OptionList(
 }
 
 @Composable
-fun rememberLazyListState(
-    initialFirstVisibleItemIndex: Int = 0,
-    initialFirstVisibleItemScrollOffset: Int = 0
-): LazyListState {
-    return rememberSaveable(saver = LazyListState.Saver) {
-        LazyListState(
-            initialFirstVisibleItemIndex, initialFirstVisibleItemScrollOffset
-        )
-    }
-}
-
-@Composable
 fun Option(
     optionItem: OptionItem,
     onNavigateToMapScreen: (String, Int) -> Unit
 ) {
     Card (
         modifier = Modifier.fillMaxWidth(),
-        onClick = { onNavigateToMapScreen(optionItem.activity, 10) }
+        elevation = CardDefaults.cardElevation(4.dp),
+        onClick = {
+            onNavigateToMapScreen(optionItem.activity, 10)
+        }
     ) {
         Row (
             modifier = Modifier

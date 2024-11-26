@@ -1,5 +1,6 @@
 package com.thingstodo.model
 
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.maps.model.LatLng
@@ -31,21 +32,23 @@ class MapViewModel(search: Search) : ViewModel() {
         _userLocation.value = latLng
     }
 
-    fun updatePlacesOfInterest(userLatLng: LatLng, placesClient: PlacesClient) {
-        // Specify the list of fields to return.
-        val placeFields = listOf(Place.Field.DISPLAY_NAME, Place.Field.LOCATION)
+    fun updatePlacesOfInterest(placesClient: PlacesClient) {
+        userLocation.value?.let {
+            // Specify the list of fields to return.
+            val placeFields = listOf(Place.Field.DISPLAY_NAME, Place.Field.LOCATION)
 
-        // Use the builder to create a SearchByTextRequest object.
-        val searchByTextRequest = SearchByTextRequest.builder(searchQuery.value.query, placeFields)
-            .setMaxResultCount(5)
-            .setLocationBias(CircularBounds.newInstance(userLatLng, searchQuery.value.radius.toDouble())).build()
+            // Use the builder to create a SearchByTextRequest object.
+            val searchByTextRequest = SearchByTextRequest.builder(searchQuery.value.query, placeFields)
+                .setMaxResultCount(5)
+                .setLocationBias(CircularBounds.newInstance(it, searchQuery.value.radius.toDouble())).build()
 
-        // Call PlacesClient.searchByText() to perform the search.
-        // Define a response handler to process the returned List of Place objects.
-        placesClient.searchByText(searchByTextRequest)
-            .addOnSuccessListener { response ->
-                _placesOfInterest.value = response.places
-            }
+            // Call PlacesClient.searchByText() to perform the search.
+            // Define a response handler to process the returned List of Place objects.
+            placesClient.searchByText(searchByTextRequest)
+                .addOnSuccessListener { response ->
+                    _placesOfInterest.value = response.places
+                }
+        }
     }
 
 }
