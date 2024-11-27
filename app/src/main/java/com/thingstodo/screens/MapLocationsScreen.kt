@@ -19,7 +19,7 @@ import com.google.android.libraries.places.api.net.PlacesClient
 @Composable
 fun UserLocationRequest(
     fusedLocationClient: FusedLocationProviderClient,
-    userLocation: LatLng?,
+    userLocation: LatLng,
     updateUserLocation: (LatLng) -> Unit
 ) {
     val context = LocalContext.current
@@ -51,7 +51,7 @@ fun UserLocationRequest(
             // Check if the location permission is already granted
             ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) -> {
                 // Fetch the user's location and update the camera
-                if (userLocation == null) {
+                if (userLocation.latitude == 0.0 && userLocation.longitude == 0.0) {
                     fetchUserLocation(context, fusedLocationClient, onSuccessListener)
                 }
             }

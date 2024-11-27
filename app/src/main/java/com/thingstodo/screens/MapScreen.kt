@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.OnSuccessListener
@@ -49,7 +50,6 @@ fun MapScreen(
         factory = MapViewModelFactory(Search()))
 ) {
     val userLocation by mapViewModel.userLocation.collectAsState()
-    val searchQuery by mapViewModel.searchQuery.collectAsState()
     val placesOfInterest by mapViewModel.placesOfInterest.collectAsState()
 
     Map(userLocation, placesOfInterest)
@@ -57,11 +57,20 @@ fun MapScreen(
 
 @Composable
 fun Map(
-    userLocation: LatLng?,
+    userLocation: LatLng,
     placesOfInterest: List<Place>,
 ) {
-    val cameraPositionState = rememberCameraPositionState()
     var hasSetInitialLocation by rememberSaveable { mutableStateOf(false) }
+    val cameraPositionState = rememberCameraPositionState()
+
+    LaunchedEffect(key1 = true) {
+        cameraPositionState.animate(
+            update = CameraUpdateFactory.newCameraPosition(
+                CameraPosition(userLocation, 16f, 0f, 0f)
+            ),
+            durationMs = 1000
+        )
+    }
 
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
@@ -69,10 +78,8 @@ fun Map(
         mapColorScheme = ComposeMapColorScheme.DARK,
     ) {
         if (!hasSetInitialLocation) {
-            userLocation?.let {
-                cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 15f)
-                hasSetInitialLocation = true
-            }
+            cameraPositionState.position = CameraPosition.fromLatLngZoom(userLocation, 6f)
+            hasSetInitialLocation = true
         }
 
         placesOfInterest.forEach {

@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
 
     @Preview
     @Composable
-    private fun screenPreview() {
+    private fun ScreenPreview() {
         AppTheme {
             MainScreen()
         }
@@ -75,7 +75,6 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun MainScreen() {
-        val context = LocalContext.current
         val navController = rememberNavController()
         val mapViewModel: MapViewModel = viewModel(factory = MapViewModelFactory(Search()))
         RequestPermissions(mapViewModel)

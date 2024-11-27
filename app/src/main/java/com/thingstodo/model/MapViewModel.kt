@@ -18,8 +18,8 @@ class MapViewModel(search: Search) : ViewModel() {
     private val _searchQuery = MutableStateFlow(search)
     val searchQuery: StateFlow<Search> = _searchQuery.asStateFlow()
 
-    private val _userLocation = MutableStateFlow<LatLng?>(null)
-    val userLocation: StateFlow<LatLng?> = _userLocation.asStateFlow()
+    private val _userLocation = MutableStateFlow(LatLng(0.0, 0.0))
+    val userLocation: StateFlow<LatLng> = _userLocation.asStateFlow()
 
     private val _placesOfInterest = MutableStateFlow<List<Place>>(emptyList())
     val placesOfInterest: StateFlow<List<Place>> = _placesOfInterest.asStateFlow()
@@ -33,24 +33,21 @@ class MapViewModel(search: Search) : ViewModel() {
     }
 
     fun updatePlacesOfInterest(placesClient: PlacesClient) {
-        userLocation.value?.let {
-            // Specify the list of fields to return.
-            val placeFields = listOf(Place.Field.DISPLAY_NAME, Place.Field.LOCATION)
+        // Specify the list of fields to return.
+        val placeFields = listOf(Place.Field.DISPLAY_NAME, Place.Field.LOCATION)
 
-            // Use the builder to create a SearchByTextRequest object.
-            val searchByTextRequest = SearchByTextRequest.builder(searchQuery.value.query, placeFields)
-                .setMaxResultCount(5)
-                .setLocationBias(CircularBounds.newInstance(it, searchQuery.value.radius.toDouble())).build()
+        // Use the builder to create a SearchByTextRequest object.
+        val searchByTextRequest = SearchByTextRequest.builder(searchQuery.value.query, placeFields)
+            .setMaxResultCount(5)
+            .setLocationBias(CircularBounds.newInstance(_userLocation.value, searchQuery.value.radius.toDouble())).build()
 
-            // Call PlacesClient.searchByText() to perform the search.
-            // Define a response handler to process the returned List of Place objects.
-            placesClient.searchByText(searchByTextRequest)
-                .addOnSuccessListener { response ->
-                    _placesOfInterest.value = response.places
-                }
+        // Call PlacesClient.searchByText() to perform the search.
+        // Define a response handler to process the returned List of Place objects.
+        placesClient.searchByText(searchByTextRequest)
+            .addOnSuccessListener { response ->
+                _placesOfInterest.value = response.places
         }
     }
-
 }
 
 class MapViewModelFactory(private val search: Search) : ViewModelProvider.Factory {
@@ -64,5 +61,4 @@ class MapViewModelFactory(private val search: Search) : ViewModelProvider.Factor
 data class Search(
     val query : String = "",
     val radius : Int = 0,
-    //TODO add marked items
 )
