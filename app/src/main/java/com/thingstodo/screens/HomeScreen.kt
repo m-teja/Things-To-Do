@@ -3,29 +3,29 @@ package com.thingstodo.screens
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowDropDown
-import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -46,6 +46,9 @@ import com.thingstodo.model.HomeViewModel
 import com.thingstodo.model.OptionItem
 import com.thingstodo.ui.AppTheme
 import com.thingstodo.utils.JsonParser
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.math.floor
 
 @Preview
 @Composable
@@ -70,102 +73,179 @@ fun HomeScreen(
 fun OptionList(
     optionItems: List<OptionItem>, onNavigateToMapScreen: (String, Int) -> Unit
 ) {
-    LazyColumn (
-        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+    val listState = rememberLazyListState()
+    var scrollToIndex by rememberSaveable { mutableStateOf<Int?>(null) }
+    val coroutineScope = rememberCoroutineScope()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 10.dp, vertical = 10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        items(optionItems) { optionItem ->
-            Option(optionItem, onNavigateToMapScreen)
+        LazyColumn(
+            modifier = Modifier.weight(1f, fill = false),
+            state = listState,
+        ) {
+            itemsIndexed(optionItems) { index, optionItem ->
+                Option(
+                    optionItem = optionItem,
+                    isHighlightedAnimation = (index == scrollToIndex),
+                    onNavigateToMapScreen = onNavigateToMapScreen,
+                    isStartOfCategory = (index == 0 || optionItems[index - 1].category != optionItem.category),
+                    resetHighlightIndex = {
+                        scrollToIndex = null
+                    }
+                )
+            }
         }
+
+        randomButton(scrollToIndex = {
+            coroutineScope.launch {
+                val randIndex = floor(Math.random() * listState.layoutInfo.totalItemsCount).toInt()
+                listState.animateScrollToItem(index = randIndex, scrollOffset = -400)
+                scrollToIndex = randIndex
+            }
+        })
+    }
+}
+
+@Composable
+fun randomButton(scrollToIndex: () -> Unit) {
+    Button(
+        onClick = {
+            scrollToIndex()
+        }
+    ) {
+        Text(text = "Randomize!")
     }
 }
 
 @Composable
 fun Option(
     optionItem: OptionItem,
-    onNavigateToMapScreen: (String, Int) -> Unit
+    isHighlightedAnimation: Boolean,
+    isStartOfCategory: Boolean,
+    onNavigateToMapScreen: (String, Int) -> Unit,
+    resetHighlightIndex: () -> Unit
 ) {
-    Card (
-        modifier = Modifier
-            .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(4.dp),
-        onClick = {
-            onNavigateToMapScreen(optionItem.activity, 10)
+
+    var currentlyHighlighted by remember { mutableStateOf(false) }
+
+    if (isHighlightedAnimation) {
+        LaunchedEffect (true) {
+            for (i in 0 until 3) {
+                currentlyHighlighted = true
+                delay(200)
+                currentlyHighlighted = false
+                delay(200)
+            }
+            currentlyHighlighted = true
+            resetHighlightIndex()
         }
+    }
+
+    Column (
+        verticalArrangement = Arrangement.spacedBy(15.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column (
+        if (isStartOfCategory) {
+            Text(
+                modifier = Modifier.padding(top = 10.dp),
+                fontSize = 20.sp,
+                color = MaterialTheme.colorScheme.onBackground,
+                text = optionItem.category.uppercase()
+            )
+            HorizontalDivider(thickness = 2.dp)
+        }
+
+        Card (
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(25.dp)
+                .padding(vertical = 5.dp),
+            elevation = CardDefaults.cardElevation(4.dp),
+
+            colors = if (currentlyHighlighted) {
+                CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.5f))
+            } else CardDefaults.cardColors(),
+            onClick = {
+                onNavigateToMapScreen(optionItem.activity, 10)
+            }
         ) {
-            Row (
+            Column (
                 modifier = Modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Absolute.SpaceBetween
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 10.dp),
             ) {
-                Column (
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ){
-                    Text(
-                        fontFamily = FontFamily.Serif,
-                        text = optionItem.activity
-                    )
-
-                    Text(
-                        fontFamily = FontFamily.Serif,
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.secondary,
-                        text = optionItem.category
-                    )
-                }
-
-                optionItem.icon?.let {
-                    Icon(
-                        imageVector = it,
-                        contentDescription = optionItem.activity
-                    )
-                }
-            }
-            val middleWord = when (optionItem.activity[0].lowercaseChar()) {
-                'a', 'e', 'i', 'o', 'u' -> "an"
-                else -> "a"
-            }
-            val message = "Search for " + middleWord + " " + optionItem.activity
-
-            Row (
-                modifier = Modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Absolute.SpaceBetween
-            ) {
-
-                IconButton (
-                    onClick = {
-
-                    }
+                Row (
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Absolute.SpaceBetween
                 ) {
-                    Icon(
-                        modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.errorContainer)
-                            .padding(3.dp),
-                        imageVector = ImageVector.vectorResource(R.drawable.delete_icon),
-                        contentDescription = "delete"
-                    )
+                    Column (
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ){
+                        Text(
+                            fontFamily = FontFamily.Serif,
+                            text = optionItem.activity
+                        )
+
+                        Text(
+                            fontFamily = FontFamily.Serif,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.secondary,
+                            text = optionItem.category
+                        )
+                    }
+
+                    optionItem.icon?.let {
+                        Icon(
+                            imageVector = it,
+                            contentDescription = optionItem.activity
+                        )
+                    }
                 }
+                val middleWord = when (optionItem.activity[0].lowercaseChar()) {
+                    'a', 'e', 'i', 'o', 'u' -> "an"
+                    else -> "a"
+                }
+                val message = "Search for " + middleWord + " " + optionItem.activity
 
-                Row {
-                    Text(
-                        fontFamily = FontFamily.Serif,
-                        fontSize = 14.sp,
-                        text =  message
-                    )
+                Row (
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Absolute.SpaceBetween
+                ) {
 
-                    Icon (
-                        imageVector = ImageVector.vectorResource(R.drawable.link_search_icon),
-                        contentDescription = "link search"
-                    )
+                    IconButton (
+                        onClick = {
+
+                        }
+                    ) {
+                        Icon(
+                            modifier = Modifier
+                                .background(color = MaterialTheme.colorScheme.errorContainer)
+                                .padding(3.dp),
+                            imageVector = ImageVector.vectorResource(R.drawable.delete_icon),
+                            contentDescription = "delete"
+                        )
+                    }
+
+                    Row {
+                        Text(
+                            fontFamily = FontFamily.Serif,
+                            fontSize = 14.sp,
+                            text =  message
+                        )
+
+                        Icon (
+                            imageVector = ImageVector.vectorResource(R.drawable.link_search_icon),
+                            contentDescription = "link search"
+                        )
+                    }
                 }
             }
         }
