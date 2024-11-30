@@ -1,19 +1,29 @@
 package com.thingstodo.model
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
-import com.google.android.libraries.places.api.model.Place
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 
 class HomeViewModel : ViewModel() {
-    private val _optionItemList = MutableStateFlow<List<OptionItem>>(emptyList())
-    val optionItemList: StateFlow<List<OptionItem>> = _optionItemList.asStateFlow()
+    private val _fullOptionItemList = MutableStateFlow<List<OptionItem>>(emptyList())
+    val fullOptionItemList: StateFlow<List<OptionItem>> = _fullOptionItemList.asStateFlow()
 
-    fun updateOptionItemList(list: List<OptionItem>) {
-        _optionItemList.value = list
+    private val _currentOptionItemList = mutableStateListOf<OptionItem>()
+    var currentOptionItemList: List<OptionItem> = _currentOptionItemList
+
+    fun setFullOptionItemList(list: List<OptionItem>) {
+        _fullOptionItemList.value = list
+        _currentOptionItemList.clear()
+        _currentOptionItemList.addAll(list)
+    }
+
+    fun removeItem(optionItem: OptionItem) {
+        _currentOptionItemList.remove(optionItem)
+        println(currentOptionItemList.size)
     }
 }
 

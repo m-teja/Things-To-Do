@@ -1,6 +1,8 @@
 package com.thingstodo.screens
 
 import android.content.Context
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
@@ -22,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,12 +51,13 @@ import com.thingstodo.utils.JsonParser
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.floor
+import kotlin.reflect.KFunction1
 
 @Preview
 @Composable
 fun HomeScreenPreview() {
     AppTheme {
-        HomeScreen(onNavigateToMapScreen = {a, b -> })
+        HomeScreen(onNavigateToMapScreen = {_, _ -> })
     }
 }
 
@@ -63,15 +66,22 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
     onNavigateToMapScreen: (String, Int) -> Unit
 ) {
-    val optionItems = getOptionItemListFromJson(LocalContext.current)
+    getOptionItemListFromJson(LocalContext.current, homeViewModel::setFullOptionItemList)
 
-    homeViewModel.updateOptionItemList(optionItems)
-    OptionList(optionItems, onNavigateToMapScreen)
+    val currentOptionItemList = homeViewModel.currentOptionItemList
+
+    OptionList(
+        optionItems = currentOptionItemList,
+        onNavigateToMapScreen = onNavigateToMapScreen,
+        removeItem = homeViewModel::removeItem
+    )
 }
 
 @Composable
 fun OptionList(
-    optionItems: List<OptionItem>, onNavigateToMapScreen: (String, Int) -> Unit
+    optionItems: List<OptionItem>,
+    onNavigateToMapScreen: (String, Int) -> Unit,
+    removeItem: (OptionItem) -> Unit
 ) {
     val listState = rememberLazyListState()
     var scrollToIndex by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -88,7 +98,12 @@ fun OptionList(
             modifier = Modifier.weight(1f, fill = false),
             state = listState,
         ) {
-            itemsIndexed(optionItems) { index, optionItem ->
+            itemsIndexed(
+                optionItems,
+                key = { _, optionItem ->
+                    optionItem.activity
+                }
+            ) { index, optionItem ->
                 Option(
                     optionItem = optionItem,
                     isHighlightedAnimation = (index == scrollToIndex),
@@ -96,6 +111,9 @@ fun OptionList(
                     isStartOfCategory = (index == 0 || optionItems[index - 1].category != optionItem.category),
                     resetHighlightIndex = {
                         scrollToIndex = null
+                    },
+                    onDelete = {
+                        removeItem(optionItem)
                     }
                 )
             }
@@ -103,7 +121,7 @@ fun OptionList(
 
         randomButton(scrollToIndex = {
             coroutineScope.launch {
-                val randIndex = floor(Math.random() * listState.layoutInfo.totalItemsCount).toInt()
+                val randIndex = floor(Math.random() * optionItems.size).toInt()
                 listState.animateScrollToItem(index = randIndex, scrollOffset = -400)
                 scrollToIndex = randIndex
             }
@@ -128,7 +146,8 @@ fun Option(
     isHighlightedAnimation: Boolean,
     isStartOfCategory: Boolean,
     onNavigateToMapScreen: (String, Int) -> Unit,
-    resetHighlightIndex: () -> Unit
+    resetHighlightIndex: () -> Unit,
+    onDelete: () -> Unit
 ) {
 
     var currentlyHighlighted by remember { mutableStateOf(false) }
@@ -222,7 +241,7 @@ fun Option(
 
                     IconButton (
                         onClick = {
-
+                            onDelete()
                         }
                     ) {
                         Icon(
@@ -234,7 +253,8 @@ fun Option(
                         )
                     }
 
-                    Row {
+                    Row (
+                    ) {
                         Text(
                             fontFamily = FontFamily.Serif,
                             fontSize = 14.sp,
@@ -242,6 +262,7 @@ fun Option(
                         )
 
                         Icon (
+                            modifier = Modifier.padding(start = 4.dp),
                             imageVector = ImageVector.vectorResource(R.drawable.link_search_icon),
                             contentDescription = "link search"
                         )
@@ -253,7 +274,9 @@ fun Option(
 }
 
 @Composable
-private fun getOptionItemListFromJson(context: Context): MutableList<OptionItem> {
+private fun getOptionItemListFromJson(
+    context: Context,
+    setFullOptionItemList: (list: List<OptionItem>) -> Unit) {
     val optionItems = JsonParser.getOptionItems(context)
 
     val optionItemList = mutableListOf<OptionItem>()
@@ -265,5 +288,5 @@ private fun getOptionItemListFromJson(context: Context): MutableList<OptionItem>
         }
     }
 
-    return optionItemList
+    setFullOptionItemList(optionItemList)
 }
