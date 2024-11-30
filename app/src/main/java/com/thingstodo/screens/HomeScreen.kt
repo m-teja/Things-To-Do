@@ -114,6 +114,7 @@ fun OptionList(
                     },
                     onDelete = {
                         removeItem(optionItem)
+                        scrollToIndex = null
                     }
                 )
             }
