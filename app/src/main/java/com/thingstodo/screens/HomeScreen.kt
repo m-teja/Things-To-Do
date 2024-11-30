@@ -104,19 +104,36 @@ fun OptionList(
                     optionItem.activity
                 }
             ) { index, optionItem ->
-                Option(
-                    optionItem = optionItem,
-                    isHighlightedAnimation = (index == scrollToIndex),
-                    onNavigateToMapScreen = onNavigateToMapScreen,
-                    isStartOfCategory = (index == 0 || optionItems[index - 1].category != optionItem.category),
-                    resetHighlightIndex = {
-                        scrollToIndex = null
-                    },
-                    onDelete = {
-                        removeItem(optionItem)
-                        scrollToIndex = null
+
+                Column (
+                    modifier = Modifier.animateItem(),
+                    verticalArrangement = Arrangement.spacedBy(15.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    val isStartOfCategory = (index == 0 || optionItems[index - 1].category != optionItem.category)
+                    if (isStartOfCategory) {
+                        Text(
+                            modifier = Modifier.padding(top = 10.dp),
+                            fontSize = 20.sp,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            text = optionItem.category.uppercase()
+                        )
+                        HorizontalDivider(thickness = 2.dp)
                     }
-                )
+
+                    Option(
+                        optionItem = optionItem,
+                        isHighlightedAnimation = (index == scrollToIndex),
+                        onNavigateToMapScreen = onNavigateToMapScreen,
+                        resetHighlightIndex = {
+                            scrollToIndex = null
+                        },
+                        onDelete = {
+                            removeItem(optionItem)
+                            scrollToIndex = null
+                        }
+                    )
+                }
             }
         }
 
@@ -145,7 +162,6 @@ fun randomButton(scrollToIndex: () -> Unit) {
 fun Option(
     optionItem: OptionItem,
     isHighlightedAnimation: Boolean,
-    isStartOfCategory: Boolean,
     onNavigateToMapScreen: (String, Int) -> Unit,
     resetHighlightIndex: () -> Unit,
     onDelete: () -> Unit
@@ -166,111 +182,97 @@ fun Option(
         }
     }
 
-    Column (
-        verticalArrangement = Arrangement.spacedBy(15.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        if (isStartOfCategory) {
-            Text(
-                modifier = Modifier.padding(top = 10.dp),
-                fontSize = 20.sp,
-                color = MaterialTheme.colorScheme.onBackground,
-                text = optionItem.category.uppercase()
-            )
-            HorizontalDivider(thickness = 2.dp)
-        }
+    Card (
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
 
-        Card (
+        colors = if (currentlyHighlighted) {
+            CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.5f))
+        } else CardDefaults.cardColors(),
+        onClick = {
+            onNavigateToMapScreen(optionItem.activity, 10)
+        }
+    ) {
+        Column (
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 5.dp),
-            elevation = CardDefaults.cardElevation(4.dp),
-
-            colors = if (currentlyHighlighted) {
-                CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.5f))
-            } else CardDefaults.cardColors(),
-            onClick = {
-                onNavigateToMapScreen(optionItem.activity, 10)
-            }
+                .padding(horizontal = 20.dp, vertical = 10.dp),
         ) {
-            Column (
+            Row (
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 10.dp),
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Absolute.SpaceBetween
             ) {
-                Row (
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Absolute.SpaceBetween
-                ) {
-                    Column (
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ){
-                        Text(
-                            fontFamily = FontFamily.Serif,
-                            text = optionItem.activity
-                        )
+                Column (
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ){
+                    Text(
+                        fontFamily = FontFamily.Serif,
+                        text = optionItem.activity
+                    )
 
-                        Text(
-                            fontFamily = FontFamily.Serif,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.secondary,
-                            text = optionItem.category
-                        )
-                    }
-
-                    optionItem.icon?.let {
-                        Icon(
-                            imageVector = it,
-                            contentDescription = optionItem.activity
-                        )
-                    }
+                    Text(
+                        fontFamily = FontFamily.Serif,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.secondary,
+                        text = optionItem.category
+                    )
                 }
-                val middleWord = when (optionItem.activity[0].lowercaseChar()) {
-                    'a', 'e', 'i', 'o', 'u' -> "an"
-                    else -> "a"
+
+                optionItem.icon?.let {
+                    Icon(
+                        imageVector = it,
+                        contentDescription = optionItem.activity
+                    )
                 }
-                val message = "Search for " + middleWord + " " + optionItem.activity
+            }
+            val middleWord = when (optionItem.activity[0].lowercaseChar()) {
+                'a', 'e', 'i', 'o', 'u' -> "an"
+                else -> "a"
+            }
+            val message = "Search for " + middleWord + " " + optionItem.activity
+
+            Row (
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Absolute.SpaceBetween
+            ) {
+
+                IconButton (
+                    onClick = {
+                        onDelete()
+                    }
+                ) {
+                    Icon(
+                        modifier = Modifier
+                            .background(color = MaterialTheme.colorScheme.errorContainer)
+                            .padding(3.dp),
+                        imageVector = ImageVector.vectorResource(R.drawable.delete_icon),
+                        contentDescription = "delete"
+                    )
+                }
 
                 Row (
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Absolute.SpaceBetween
                 ) {
+                    Text(
+                        fontFamily = FontFamily.Serif,
+                        fontSize = 14.sp,
+                        text =  message
+                    )
 
-                    IconButton (
-                        onClick = {
-                            onDelete()
-                        }
-                    ) {
-                        Icon(
-                            modifier = Modifier
-                                .background(color = MaterialTheme.colorScheme.errorContainer)
-                                .padding(3.dp),
-                            imageVector = ImageVector.vectorResource(R.drawable.delete_icon),
-                            contentDescription = "delete"
-                        )
-                    }
-
-                    Row (
-                    ) {
-                        Text(
-                            fontFamily = FontFamily.Serif,
-                            fontSize = 14.sp,
-                            text =  message
-                        )
-
-                        Icon (
-                            modifier = Modifier.padding(start = 4.dp),
-                            imageVector = ImageVector.vectorResource(R.drawable.link_search_icon),
-                            contentDescription = "link search"
-                        )
-                    }
+                    Icon (
+                        modifier = Modifier.padding(start = 4.dp),
+                        imageVector = ImageVector.vectorResource(R.drawable.link_search_icon),
+                        contentDescription = "link search"
+                    )
                 }
             }
         }
+
     }
 }
 
