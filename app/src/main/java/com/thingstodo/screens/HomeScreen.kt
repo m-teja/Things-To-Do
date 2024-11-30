@@ -1,8 +1,6 @@
 package com.thingstodo.screens
 
 import android.content.Context
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,10 +18,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,7 +49,6 @@ import com.thingstodo.utils.JsonParser
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.floor
-import kotlin.reflect.KFunction1
 
 @Preview
 @Composable
@@ -137,24 +134,59 @@ fun OptionList(
             }
         }
 
-        randomButton(scrollToIndex = {
-            coroutineScope.launch {
-                val randIndex = floor(Math.random() * optionItems.size).toInt()
-                listState.animateScrollToItem(index = randIndex, scrollOffset = -400)
-                scrollToIndex = randIndex
-            }
-        })
+        Row (
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            filterButton(onClick = {})
+
+            randomButton(onClick = {
+                coroutineScope.launch {
+                    val randIndex = floor(Math.random() * optionItems.size).toInt()
+                    listState.animateScrollToItem(index = randIndex, scrollOffset = -400)
+                    scrollToIndex = randIndex
+                }
+            })
+
+            searchButton(onClick = {
+
+            })
+        }
     }
 }
 
 @Composable
-fun randomButton(scrollToIndex: () -> Unit) {
+fun filterButton(onClick: () -> Unit) {
+    IconButton(
+        onClick = onClick
+    ) {
+        Icon(
+            tint = Color.White,
+            imageVector = ImageVector.vectorResource(R.drawable.filter_icon),
+            contentDescription = "filter"
+        )
+    }
+}
+
+@Composable
+fun randomButton(onClick: () -> Unit) {
     Button(
-        onClick = {
-            scrollToIndex()
-        }
+        onClick = onClick
     ) {
         Text(text = "Randomize!")
+    }
+}
+
+@Composable
+fun searchButton(onClick: () -> Unit) {
+    IconButton(
+        onClick = onClick
+    ) {
+        Icon(
+            tint = Color.White,
+            imageVector = ImageVector.vectorResource(R.drawable.search_icon),
+            contentDescription = "search"
+        )
     }
 }
 
