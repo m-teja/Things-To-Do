@@ -63,22 +63,13 @@ fun Map(
     var hasSetInitialLocation by rememberSaveable { mutableStateOf(false) }
     val cameraPositionState = rememberCameraPositionState()
 
-    LaunchedEffect(key1 = true) {
-        cameraPositionState.animate(
-            update = CameraUpdateFactory.newCameraPosition(
-                CameraPosition(userLocation, 16f, 0f, 0f)
-            ),
-            durationMs = 1000
-        )
-    }
-
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
         mapColorScheme = ComposeMapColorScheme.DARK,
     ) {
         if (!hasSetInitialLocation) {
-            cameraPositionState.position = CameraPosition.fromLatLngZoom(userLocation, 6f)
+            cameraPositionState.position = CameraPosition.fromLatLngZoom(userLocation, 10f)
             hasSetInitialLocation = true
         }
 

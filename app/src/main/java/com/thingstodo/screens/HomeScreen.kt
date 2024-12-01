@@ -18,7 +18,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,6 +63,7 @@ fun HomeScreen(
     onNavigateToMapScreen: (String, Int) -> Unit
 ) {
     getOptionItemListFromJson(LocalContext.current, homeViewModel::setFullOptionItemList)
+    homeViewModel.updateCurrentOptionItemList(LocalContext.current)
 
     val currentOptionItemList = homeViewModel.currentOptionItemList
 
@@ -78,8 +78,9 @@ fun HomeScreen(
 fun OptionList(
     optionItems: List<OptionItem>,
     onNavigateToMapScreen: (String, Int) -> Unit,
-    removeItem: (OptionItem) -> Unit
+    removeItem: (Context, OptionItem) -> Unit
 ) {
+    val context = LocalContext.current
     val listState = rememberLazyListState()
     var scrollToIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     val coroutineScope = rememberCoroutineScope()
@@ -126,7 +127,7 @@ fun OptionList(
                             scrollToIndex = null
                         },
                         onDelete = {
-                            removeItem(optionItem)
+                            removeItem(context, optionItem)
                             scrollToIndex = null
                         }
                     )

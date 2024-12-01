@@ -32,7 +32,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
 import com.google.android.gms.location.LocationServices
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
@@ -42,9 +41,11 @@ import com.thingstodo.data.HomeRoute
 import com.thingstodo.data.MapRoute
 import com.thingstodo.data.ScreenLevelRoute
 import com.thingstodo.data.SettingsRoute
+import com.thingstodo.model.HomeViewModel
 import com.thingstodo.model.MapViewModel
 import com.thingstodo.model.MapViewModelFactory
 import com.thingstodo.model.Search
+import com.thingstodo.screens.SettingsScreen
 import com.thingstodo.screens.UserLocationRequest
 import com.thingstodo.ui.AppTheme
 import com.thingstodo.utils.ManifestUtils
@@ -76,7 +77,9 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun MainScreen() {
         val navController = rememberNavController()
+        val homeViewModel: HomeViewModel = viewModel()
         val mapViewModel: MapViewModel = viewModel(factory = MapViewModelFactory(Search()))
+
         RequestPermissions(mapViewModel)
         Surface(
             modifier = Modifier.fillMaxSize(),
@@ -89,6 +92,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     composable<HomeRoute> {
                         HomeScreen(
+                            homeViewModel = homeViewModel,
                             onNavigateToMapScreen = { query, radius ->
                                 mapViewModel.updateSearchQuery(Search(query, radius))
                                 mapViewModel.updatePlacesOfInterest(placesClient)
@@ -106,7 +110,7 @@ class MainActivity : ComponentActivity() {
                         MapScreen(mapViewModel = mapViewModel)
                     }
                     composable<SettingsRoute> {
-                        Text("settings")
+                        SettingsScreen(homeViewModel::updateCurrentOptionItemList)
                     }
                 }
             }

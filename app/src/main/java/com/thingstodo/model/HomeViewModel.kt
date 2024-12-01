@@ -1,5 +1,6 @@
 package com.thingstodo.model
 
+import android.content.Context
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
@@ -17,13 +18,36 @@ class HomeViewModel : ViewModel() {
 
     fun setFullOptionItemList(list: List<OptionItem>) {
         _fullOptionItemList.value = list
-        _currentOptionItemList.clear()
-        _currentOptionItemList.addAll(list)
     }
 
-    fun removeItem(optionItem: OptionItem) {
+    fun updateCurrentOptionItemList(context: Context) {
+        _currentOptionItemList.clear()
+
+        val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)?: return
+        val currentDeleteSet = sharedPreferences.getStringSet(DELETE_KEY, setOf())?.toMutableSet()
+
+        val filteredList = _fullOptionItemList.value.filter { optionItem ->
+            !(currentDeleteSet?.contains(optionItem.activity)?: true)
+        }
+        _currentOptionItemList.addAll(filteredList)
+    }
+
+    fun removeItem(context: Context, optionItem: OptionItem) {
         _currentOptionItemList.remove(optionItem)
-        println(currentOptionItemList.size)
+        val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)?: return
+        val currentDeleteSet = sharedPreferences.getStringSet(DELETE_KEY, setOf())?.toMutableSet()
+
+        with(sharedPreferences.edit()) {
+            currentDeleteSet?.add(optionItem.activity)
+            putStringSet(DELETE_KEY, currentDeleteSet)
+            apply()
+        }
+
+        updateCurrentOptionItemList(context)
+    }
+
+    companion object {
+        const val DELETE_KEY = "THINGS_TO_DO_DELETED_ITEMS"
     }
 }
 
