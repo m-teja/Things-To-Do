@@ -6,7 +6,6 @@
       "activities": [
         { "id": "adventure_park", "name": "Adventure park" },
         { "id": "amusement_park", "name": "Amusement park" },
-        { "id": "amusement_park_ride", "name": "Amusement park ride" },
         { "id": "aquarium", "name": "Aquarium" },
         { "id": "arcade", "name": "Arcade" },
         { "id": "axe_throwing", "name": "Axe throwing venue" },
