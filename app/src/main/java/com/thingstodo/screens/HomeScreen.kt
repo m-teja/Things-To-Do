@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -23,25 +22,30 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindowProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.thingstodo.R
 import com.thingstodo.data.Activity
@@ -75,7 +79,8 @@ fun HomeScreen(
     OptionList(
         optionItems = currentOptionItemList,
         onNavigateToMapScreen = onNavigateToMapScreen,
-        removeItem = homeViewModel::removeItem
+        removeItem = homeViewModel::removeItem,
+        updateCurrentFilter = homeViewModel::updateCurrentFilter
     )
 }
 
@@ -83,18 +88,20 @@ fun HomeScreen(
 fun OptionList(
     optionItems: List<OptionItem>,
     onNavigateToMapScreen: (String, Int) -> Unit,
-    removeItem: (Context, OptionItem) -> Unit
+    removeItem: (Context, OptionItem) -> Unit,
+    updateCurrentFilter: (Context, Set<String>) -> Unit
 ) {
     val context = LocalContext.current
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
     var scrollToIndex by rememberSaveable { mutableStateOf<Int?>(null) }
-    var showFilterDialog by remember { mutableStateOf(true) }
+    var showFilterDialog by remember { mutableStateOf(false) }
 
     if (showFilterDialog) {
         FilterDialog(onClose = {
             showFilterDialog = false
+            updateCurrentFilter(context, it)
         })
     }
 
@@ -185,9 +192,10 @@ fun FilterButton(onClick: () -> Unit) {
 }
 
 @Composable
-fun FilterDialog(onClose: () -> Unit) {
+fun FilterDialog(onClose: (Set<String>) -> Unit) {
     val currentFilteredSet = HomeViewModel.getCurrentFilter(LocalContext.current)
-    val newFilteredSet = currentFilteredSet.toMutableSet()
+    val newFilteredSet = remember { mutableStateListOf<String>() }
+    newFilteredSet.addAll(currentFilteredSet)
 
     fun addFilter (filter: String) {
         newFilteredSet.add(filter)
@@ -199,21 +207,50 @@ fun FilterDialog(onClose: () -> Unit) {
 
     Dialog (
         onDismissRequest = {
+            onClose(newFilteredSet.toSet())
         },
     ) {
+        (LocalView.current.parent as DialogWindowProvider).window.setDimAmount(0.9f)
         Card (
             shape = RoundedCornerShape(16.dp)
         ) {
             Column (
                 modifier = Modifier
                     .wrapContentSize()
-                    .padding(16.dp)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                FilterRow(HomeViewModel.RECREATION, HomeViewModel.SPORTS, currentFilteredSet, ::addFilter, ::removeFilter)
-                FilterRow(HomeViewModel.SHOPPING, HomeViewModel.HOSPITALITY, currentFilteredSet, ::addFilter, ::removeFilter)
-                FilterRow(HomeViewModel.CULTURE, HomeViewModel.EDUCATION, currentFilteredSet, ::addFilter, ::removeFilter)
-                FilterRow(HomeViewModel.RELIGION, HomeViewModel.OTHER, currentFilteredSet, ::addFilter, ::removeFilter)
+                Text(
+                    modifier = Modifier.padding(16.dp),
+                    text = "Filter by Category",
+                    fontSize = 20.sp
+                )
 
+                FilterRow(HomeViewModel.RECREATION, HomeViewModel.SPORTS, newFilteredSet, ::addFilter, ::removeFilter)
+                FilterRow(HomeViewModel.SHOPPING, HomeViewModel.HOSPITALITY, newFilteredSet, ::addFilter, ::removeFilter)
+                FilterRow(HomeViewModel.CULTURE, HomeViewModel.EDUCATION, newFilteredSet, ::addFilter, ::removeFilter)
+                FilterRow(HomeViewModel.RELIGION, HomeViewModel.OTHER, newFilteredSet, ::addFilter, ::removeFilter)
+
+                Row (
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    TextButton (
+                        onClick = {
+                            newFilteredSet.clear()
+                        },
+                        modifier = Modifier.padding(8.dp),
+                    ) {
+                        Text("SELECT ALL")
+                    }
+
+                    TextButton (
+                        onClick = { onClose(newFilteredSet.toSet()) },
+                        modifier = Modifier.padding(8.dp),
+                    ) {
+                        Text("DONE")
+                    }
+                }
             }
         }
     }
@@ -223,10 +260,11 @@ fun FilterDialog(onClose: () -> Unit) {
 fun FilterRow(
     category1: String,
     category2: String,
-    currentFilteredSet: Set<String>,
+    currentFilteredSet: SnapshotStateList<String>,
     addFilter: (filter: String) -> Unit,
     removeFilter: (filter: String) -> Unit
 ) {
+
     Row (
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -237,11 +275,14 @@ fun FilterRow(
             horizontalArrangement = Arrangement.End
         ) {
             Text(
-                text = category1
+                text = category1,
+                fontSize = 14.sp
             )
             Checkbox(
-                checked = currentFilteredSet.contains(category1),
-                onCheckedChange = { if (it) addFilter(category1) else removeFilter(category1) }
+                checked = !currentFilteredSet.contains(category1),
+                onCheckedChange = {
+                    if (it) removeFilter(category1) else addFilter(category1)
+                }
             )
         }
 
@@ -251,11 +292,14 @@ fun FilterRow(
             horizontalArrangement = Arrangement.End
         ){
             Text(
-                text = category2
+                text = category2,
+                fontSize = 14.sp
             )
             Checkbox(
-                checked = currentFilteredSet.contains(category2),
-                onCheckedChange = { if (it) addFilter(category2) else removeFilter(category2) }
+                checked = !currentFilteredSet.contains(category2),
+                onCheckedChange = {
+                    if (it) removeFilter(category2) else addFilter(category2)
+                }
             )
         }
     }
@@ -336,7 +380,7 @@ fun Option(
                 ){
                     Text(
                         fontFamily = FontFamily.Serif,
-                        text = optionItem.activity
+                        text = optionItem.activity,
                     )
 
                     Text(
