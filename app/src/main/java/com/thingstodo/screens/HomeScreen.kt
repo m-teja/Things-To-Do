@@ -90,7 +90,7 @@ fun OptionList(
     val coroutineScope = rememberCoroutineScope()
 
     var scrollToIndex by rememberSaveable { mutableStateOf<Int?>(null) }
-    var showFilterDialog by remember { mutableStateOf(false) }
+    var showFilterDialog by remember { mutableStateOf(true) }
 
     if (showFilterDialog) {
         FilterDialog(onClose = {
@@ -186,29 +186,77 @@ fun FilterButton(onClick: () -> Unit) {
 
 @Composable
 fun FilterDialog(onClose: () -> Unit) {
-    var currentFilteredSet = HomeViewModel.getCurrentFilter(LocalContext.current)
+    val currentFilteredSet = HomeViewModel.getCurrentFilter(LocalContext.current)
+    val newFilteredSet = currentFilteredSet.toMutableSet()
+
+    fun addFilter (filter: String) {
+        newFilteredSet.add(filter)
+    }
+
+    fun removeFilter(filter: String) {
+        newFilteredSet.remove(filter)
+    }
 
     Dialog (
         onDismissRequest = {
         },
     ) {
         Card (
-            modifier = Modifier
-                .wrapContentSize()
-                .padding(16.dp),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Column {
-                Row {
-                    Text(
-                        "Minimal checkbox"
-                    )
-                    Checkbox(
-                        checked = true,
-                        onCheckedChange = { }
-                    )
-                }
+            Column (
+                modifier = Modifier
+                    .wrapContentSize()
+                    .padding(16.dp)
+            ) {
+                FilterRow(HomeViewModel.RECREATION, HomeViewModel.SPORTS, currentFilteredSet, ::addFilter, ::removeFilter)
+                FilterRow(HomeViewModel.SHOPPING, HomeViewModel.HOSPITALITY, currentFilteredSet, ::addFilter, ::removeFilter)
+                FilterRow(HomeViewModel.CULTURE, HomeViewModel.EDUCATION, currentFilteredSet, ::addFilter, ::removeFilter)
+                FilterRow(HomeViewModel.RELIGION, HomeViewModel.OTHER, currentFilteredSet, ::addFilter, ::removeFilter)
+
             }
+        }
+    }
+}
+
+@Composable
+fun FilterRow(
+    category1: String,
+    category2: String,
+    currentFilteredSet: Set<String>,
+    addFilter: (filter: String) -> Unit,
+    removeFilter: (filter: String) -> Unit
+) {
+    Row (
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row (
+            modifier = Modifier.fillMaxWidth(0.5f),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End
+        ) {
+            Text(
+                text = category1
+            )
+            Checkbox(
+                checked = currentFilteredSet.contains(category1),
+                onCheckedChange = { if (it) addFilter(category1) else removeFilter(category1) }
+            )
+        }
+
+        Row (
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End
+        ){
+            Text(
+                text = category2
+            )
+            Checkbox(
+                checked = currentFilteredSet.contains(category2),
+                onCheckedChange = { if (it) addFilter(category2) else removeFilter(category2) }
+            )
         }
     }
 }
