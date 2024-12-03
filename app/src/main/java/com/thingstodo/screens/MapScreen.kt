@@ -40,13 +40,16 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import com.thingstodo.model.MapViewModel
 import com.thingstodo.model.MapViewModelFactory
 import com.thingstodo.model.Search
+import com.thingstodo.ui.AppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Preview
 @Composable
 fun MapScreenPreview() {
-    MapScreen()
+    AppTheme {
+        MapScreen()
+    }
 }
 
 @Composable

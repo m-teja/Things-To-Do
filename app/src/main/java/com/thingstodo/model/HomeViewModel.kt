@@ -24,12 +24,26 @@ class HomeViewModel : ViewModel() {
         _currentOptionItemList.clear()
 
         val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)?: return
+
         val currentDeleteSet = sharedPreferences.getStringSet(DELETE_KEY, setOf())?.toMutableSet()
+        val currentFilteredSet = sharedPreferences.getStringSet(FILTER_KEY, setOf())?.toMutableSet()
 
         val filteredList = _fullOptionItemList.value.filter { optionItem ->
-            !(currentDeleteSet?.contains(optionItem.activity)?: true)
+            !(currentDeleteSet?.contains(optionItem.activity)?: true) &&
+                    !(currentFilteredSet?.contains(optionItem.category) ?: true)
         }
         _currentOptionItemList.addAll(filteredList)
+    }
+
+    fun updateCurrentFilter(context: Context, filteredCategories: Set<String>) {
+        val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)?: return
+
+        with(sharedPreferences.edit()) {
+            putStringSet(FILTER_KEY, filteredCategories)
+            apply()
+        }
+
+        updateCurrentOptionItemList(context)
     }
 
     fun removeItem(context: Context, optionItem: OptionItem) {
@@ -48,6 +62,21 @@ class HomeViewModel : ViewModel() {
 
     companion object {
         const val DELETE_KEY = "THINGS_TO_DO_DELETED_ITEMS"
+        const val FILTER_KEY = "THINGS_TO_DO_FILTERED_CATEGORIES"
+
+        const val RECREATION: String = "Recreation"
+        const val SPORTS: String = "Sports"
+        const val SHOPPING: String = "Shopping"
+        const val HOSPITALITY: String = "Hospitality"
+        const val CULTURE: String = "Culture"
+        const val EDUCATION: String = "Education"
+        const val RELIGION: String = "Religion"
+        const val OTHER: String = "Other"
+
+        fun getCurrentFilter(context: Context): Set<String> {
+            val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
+            return sharedPreferences.getStringSet(FILTER_KEY, setOf())?: setOf()
+        }
     }
 }
 

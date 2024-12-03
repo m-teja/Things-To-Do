@@ -94,8 +94,11 @@ class MainActivity : ComponentActivity() {
                         HomeScreen(
                             homeViewModel = homeViewModel,
                             onNavigateToMapScreen = { query, radius ->
-                                mapViewModel.updateSearchQuery(Search(query, radius))
-                                mapViewModel.updatePlacesOfInterest(placesClient)
+                                if (!mapViewModel.searchQuery.equals(query)) {
+                                    mapViewModel.updateSearchQuery(Search(query, radius))
+                                    mapViewModel.updatePlacesOfInterest(placesClient)
+                                }
+
                                 navController.navigate(route = MapRoute(query, radius)) {
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
