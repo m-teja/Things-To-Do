@@ -60,6 +60,20 @@ class HomeViewModel : ViewModel() {
         updateCurrentOptionItemList(context)
     }
 
+    fun addItem(context: Context, optionItem: OptionItem) {
+        _currentOptionItemList.add(optionItem)
+        val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)?: return
+        val currentDeleteSet = sharedPreferences.getStringSet(DELETE_KEY, setOf())?.toMutableSet()
+
+        with(sharedPreferences.edit()) {
+            currentDeleteSet?.remove(optionItem.activity)
+            putStringSet(DELETE_KEY, currentDeleteSet)
+            apply()
+        }
+
+        updateCurrentOptionItemList(context)
+    }
+
     companion object {
         const val DELETE_KEY = "THINGS_TO_DO_DELETED_ITEMS"
         const val FILTER_KEY = "THINGS_TO_DO_FILTERED_CATEGORIES"

@@ -21,6 +21,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -80,6 +84,7 @@ fun HomeScreen(
         optionItems = currentOptionItemList,
         onNavigateToMapScreen = onNavigateToMapScreen,
         removeItem = homeViewModel::removeItem,
+        addItem = homeViewModel::addItem,
         updateCurrentFilter = homeViewModel::updateCurrentFilter
     )
 }
@@ -89,11 +94,13 @@ fun OptionList(
     optionItems: List<OptionItem>,
     onNavigateToMapScreen: (String, Int) -> Unit,
     removeItem: (Context, OptionItem) -> Unit,
+    addItem: (Context, OptionItem) -> Unit,
     updateCurrentFilter: (Context, Set<String>) -> Unit
 ) {
     val context = LocalContext.current
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val undoSnackBarHostState = remember { SnackbarHostState() }
 
     var scrollToIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     var showFilterDialog by remember { mutableStateOf(false) }
@@ -151,11 +158,27 @@ fun OptionList(
                         onDelete = {
                             removeItem(context, optionItem)
                             scrollToIndex = null
+                            coroutineScope.launch {
+                                undoSnackBarHostState.currentSnackbarData?.dismiss()
+                                val result = undoSnackBarHostState.showSnackbar(
+                                    message = "Deleted " + optionItem.activity,
+                                    actionLabel = "Undo",
+                                    duration = SnackbarDuration.Short
+                                )
+
+                                if (result == SnackbarResult.ActionPerformed) {
+                                    addItem(context, optionItem)
+                                }
+                            }
                         }
                     )
                 }
             }
         }
+
+        SnackbarHost(
+            hostState = undoSnackBarHostState,
+        )
 
         Row (
             modifier = Modifier.fillMaxWidth(),
