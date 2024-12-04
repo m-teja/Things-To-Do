@@ -110,10 +110,12 @@ fun OptionList(
             .fillMaxSize()
             .padding(horizontal = 10.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
         LazyColumn(
-            modifier = Modifier.weight(1f, fill = false),
+            modifier = Modifier
+                .weight(1f, fill = false)
+                .padding(bottom = 6.dp),
             state = listState,
         ) {
             itemsIndexed(
@@ -157,7 +159,7 @@ fun OptionList(
 
         Row (
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             FilterButton(onClick = {
                 showFilterDialog = true
@@ -232,8 +234,10 @@ fun FilterDialog(onClose: (Set<String>) -> Unit) {
                 FilterRow(HomeViewModel.RELIGION, HomeViewModel.OTHER, newFilteredSet, ::addFilter, ::removeFilter)
 
                 Row (
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     TextButton (
                         onClick = {

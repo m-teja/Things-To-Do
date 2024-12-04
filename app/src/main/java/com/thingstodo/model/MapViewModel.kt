@@ -34,7 +34,7 @@ class MapViewModel(search: Search) : ViewModel() {
 
     fun updatePlacesOfInterest(placesClient: PlacesClient) {
         // Specify the list of fields to return.
-        val placeFields = listOf(Place.Field.DISPLAY_NAME, Place.Field.LOCATION)
+        val placeFields = listOf(Place.Field.DISPLAY_NAME, Place.Field.LOCATION, Place.Field.FORMATTED_ADDRESS)
 
         // Use the builder to create a SearchByTextRequest object.
         val searchByTextRequest = SearchByTextRequest.builder(searchQuery.value.query, placeFields)
