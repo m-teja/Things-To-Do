@@ -159,7 +159,9 @@ fun Map(
                             Uri.parse("geo:0,0?q=$address")
                         val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
                         mapIntent.setPackage("com.google.android.apps.maps")
-                        context.startActivity(mapIntent)
+                        mapIntent.resolveActivity(context.packageManager)?.let {
+                            context.startActivity(mapIntent)
+                        }
                     }
                 ) { marker: Marker ->
                     Column (

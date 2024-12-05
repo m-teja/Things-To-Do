@@ -2,6 +2,7 @@ package com.thingstodo.model
 
 import android.content.Context
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +16,9 @@ class HomeViewModel : ViewModel() {
 
     private val _currentOptionItemList = mutableStateListOf<OptionItem>()
     var currentOptionItemList: List<OptionItem> = _currentOptionItemList
+
+    private val _currentSearchQuery = mutableStateOf("")
+    var currentSearchQuery = _currentSearchQuery
 
     fun setFullOptionItemList(list: List<OptionItem>) {
         _fullOptionItemList.value = list
@@ -30,7 +34,8 @@ class HomeViewModel : ViewModel() {
 
         val filteredList = _fullOptionItemList.value.filter { optionItem ->
             !(currentDeleteSet?.contains(optionItem.activity)?: true) &&
-                    !(currentFilteredSet?.contains(optionItem.category) ?: true)
+                    !(currentFilteredSet?.contains(optionItem.category) ?: true) &&
+                    optionItem.activity.lowercase().contains(currentSearchQuery.value)
         }
         _currentOptionItemList.addAll(filteredList)
     }
@@ -42,6 +47,12 @@ class HomeViewModel : ViewModel() {
             putStringSet(FILTER_KEY, filteredCategories)
             apply()
         }
+
+        updateCurrentOptionItemList(context)
+    }
+
+    fun updateCurrentSearch(context: Context, query: String) {
+        _currentSearchQuery.value = query
 
         updateCurrentOptionItemList(context)
     }

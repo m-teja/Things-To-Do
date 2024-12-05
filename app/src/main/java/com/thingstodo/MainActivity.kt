@@ -3,7 +3,9 @@ package com.thingstodo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home
@@ -88,7 +90,10 @@ class MainActivity : ComponentActivity() {
                 NavHost(
                     navController = navController,
                     startDestination = HomeRoute,
-                    modifier = Modifier.padding(padding),
+                    modifier = Modifier
+                        .consumeWindowInsets(padding)
+                        .padding(padding)
+                        .imePadding(),
                 ) {
                     composable<HomeRoute> {
                         HomeScreen(

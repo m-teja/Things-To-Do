@@ -1,32 +1,47 @@
 package com.thingstodo.screens
 
 import android.content.Context
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,15 +51,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -85,7 +110,8 @@ fun HomeScreen(
         onNavigateToMapScreen = onNavigateToMapScreen,
         removeItem = homeViewModel::removeItem,
         addItem = homeViewModel::addItem,
-        updateCurrentFilter = homeViewModel::updateCurrentFilter
+        updateCurrentFilter = homeViewModel::updateCurrentFilter,
+        updateCurrentSearch = homeViewModel::updateCurrentSearch
     )
 }
 
@@ -95,7 +121,8 @@ fun OptionList(
     onNavigateToMapScreen: (String, Int) -> Unit,
     removeItem: (Context, OptionItem) -> Unit,
     addItem: (Context, OptionItem) -> Unit,
-    updateCurrentFilter: (Context, Set<String>) -> Unit
+    updateCurrentFilter: (Context, Set<String>) -> Unit,
+    updateCurrentSearch: (Context, String) -> Unit
 ) {
     val context = LocalContext.current
     val listState = rememberLazyListState()
@@ -104,6 +131,7 @@ fun OptionList(
 
     var scrollToIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     var showFilterDialog by remember { mutableStateOf(false) }
+    var showSearchBar by remember { mutableStateOf(false) }
 
     if (showFilterDialog) {
         FilterDialog(onClose = {
@@ -180,25 +208,41 @@ fun OptionList(
             hostState = undoSnackBarHostState,
         )
 
-        Row (
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+        Column (
+            modifier = Modifier.background(color = MaterialTheme.colorScheme.surface)
         ) {
-            FilterButton(onClick = {
-                showFilterDialog = true
-            })
+            if (showSearchBar) {
+                SearchActivityBar(updateCurrentSearch, onClose = {
+                    showSearchBar = false
+                })
+            }
 
-            randomButton(onClick = {
-                coroutineScope.launch {
-                    val randIndex = floor(Math.random() * optionItems.size).toInt()
-                    listState.animateScrollToItem(index = randIndex, scrollOffset = -400)
-                    scrollToIndex = randIndex
-                }
-            })
+            Row (
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+            ) {
+                FilterButton(onClick = {
+                    showFilterDialog = true
+                })
 
-            searchButton(onClick = {
+                randomButton(onClick = {
+                    coroutineScope.launch {
+                        if (optionItems.isNotEmpty()) {
+                            val randIndex = floor(Math.random() * optionItems.size).toInt()
+                            listState.animateScrollToItem(index = randIndex, scrollOffset = -400)
+                            scrollToIndex = randIndex
+                        }
+                    }
+                })
 
-            })
+                searchButton(onClick = {
+                    showSearchBar = !showSearchBar
+                    if (!showSearchBar) {
+                        updateCurrentSearch(context, "")
+                    }
+                })
+            }
         }
     }
 }
@@ -351,6 +395,59 @@ fun searchButton(onClick: () -> Unit) {
             imageVector = ImageVector.vectorResource(R.drawable.search_icon),
             contentDescription = "search"
         )
+    }
+}
+
+@Composable
+fun SearchActivityBar(
+    updateCurrentSearch: (Context, String) -> Unit,
+    onClose: () -> Unit
+) {
+    val context = LocalContext.current
+    var text by rememberSaveable { mutableStateOf("") }
+
+    val focusRequester = remember { FocusRequester() }
+    val windowInfo = LocalWindowInfo.current
+
+    Row (
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        OutlinedTextField (
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = false)
+                .focusRequester(focusRequester)
+                .padding(5.dp),
+            shape = RoundedCornerShape(20.dp),
+            singleLine = true,
+            placeholder = {
+                Text(text = "Search for an activity")
+            },
+            value = text,
+            onValueChange = {
+                text = it
+                updateCurrentSearch(context, text)
+            },
+        )
+
+        if (text.isNotEmpty()) {
+            TextButton(
+                onClick = {
+                    updateCurrentSearch(context, "")
+                    onClose()
+                }
+            ) {
+                Text("Cancel")
+            }
+        }
+    }
+
+    LaunchedEffect(windowInfo) {
+        snapshotFlow { windowInfo.isWindowFocused }.collect { isWindowFocused ->
+            if (isWindowFocused) {
+                focusRequester.requestFocus()
+            }
+        }
     }
 }
 
