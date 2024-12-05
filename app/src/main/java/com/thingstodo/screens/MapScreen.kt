@@ -148,7 +148,7 @@ fun Map(
                     location.longitude,
                     results
                 )
-                val distanceBetween = round( results[0] / 1000).toInt()
+                val distanceBetween = ((results[0] / 100).toInt()) / 10.0
 
                 MarkerInfoWindow(
                     state = MarkerState(location),
@@ -183,7 +183,7 @@ fun Map(
                                 )
 
                                 Text(
-                                    text = distanceBetween.toString() + "km away",
+                                    text = distanceBetween.toString() + " km away",
                                     fontSize = 14.sp
                                 )
 

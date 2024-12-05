@@ -404,10 +404,11 @@ fun SearchActivityBar(
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
-    var text by rememberSaveable { mutableStateOf("") }
-
-    val focusRequester = remember { FocusRequester() }
     val windowInfo = LocalWindowInfo.current
+
+    var text by rememberSaveable { mutableStateOf("") }
+    val focusRequester = remember { FocusRequester() }
+    var hasChanged by rememberSaveable { mutableStateOf(false) }
 
     Row (
         verticalAlignment = Alignment.CenterVertically
@@ -427,10 +428,11 @@ fun SearchActivityBar(
             onValueChange = {
                 text = it
                 updateCurrentSearch(context, text)
+                hasChanged = true
             },
         )
 
-        if (text.isNotEmpty()) {
+        if (hasChanged) {
             TextButton(
                 onClick = {
                     updateCurrentSearch(context, "")
