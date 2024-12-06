@@ -6,16 +6,34 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.thingstodo.model.HomeViewModel.Companion.DELETE_KEY
 import com.thingstodo.ui.AppTheme
+import com.thingstodo.utils.SharedPreferencesUtil
+import com.thingstodo.utils.SharedPreferencesUtil.DELETE_KEY
 
 @Preview
 @Composable
@@ -36,6 +54,9 @@ fun SettingsScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
+
+        NumResultsDropDownMenu()
+
         Button(
             onClick = {
                 val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
@@ -51,7 +72,6 @@ fun SettingsScreen(
         ) {
             Text("Reset activity list")
         }
-
 //        AndroidView(
 //            modifier = Modifier.fillMaxWidth(),
 //            factory = { context ->
@@ -64,4 +84,55 @@ fun SettingsScreen(
 //        )
     }
 
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NumResultsDropDownMenu() {
+    val context = LocalContext.current
+    var expanded by remember { mutableStateOf(true) }
+    val focusRequester = remember { FocusRequester() }
+    var selectedNum by remember { mutableStateOf(SharedPreferencesUtil.getMaximumNumResults(context)) }
+
+    ExposedDropdownMenuBox (
+        modifier = Modifier.wrapContentSize(),
+        expanded = expanded,
+        onExpandedChange = {
+            expanded = !expanded
+        }
+    ) {
+
+        OutlinedTextField (
+            modifier = Modifier
+                .wrapContentSize()
+                .focusRequester(focusRequester),
+            singleLine = true,
+            placeholder = {
+
+            },
+            readOnly = true,
+            value = selectedNum.toString(),
+            onValueChange = {
+                selectedNum = it.toInt()
+                SharedPreferencesUtil.setMaximumNumResults(context, selectedNum)
+            },
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+
+            for (i in 1 until 11) {
+                DropdownMenuItem(
+                    text = { Text(text = i.toString()) },
+                    onClick = {
+                        selectedNum = i
+                        expanded = false
+                    }
+                )
+            }
+        }
+
+    }
 }

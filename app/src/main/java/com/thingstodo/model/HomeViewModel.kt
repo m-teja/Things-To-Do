@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
+import com.thingstodo.utils.SharedPreferencesUtil.DELETE_KEY
+import com.thingstodo.utils.SharedPreferencesUtil.FILTER_KEY
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -86,8 +88,7 @@ class HomeViewModel : ViewModel() {
     }
 
     companion object {
-        const val DELETE_KEY = "THINGS_TO_DO_DELETED_ITEMS"
-        const val FILTER_KEY = "THINGS_TO_DO_FILTERED_CATEGORIES"
+
 
         const val RECREATION: String = "Recreation"
         const val SPORTS: String = "Sports"

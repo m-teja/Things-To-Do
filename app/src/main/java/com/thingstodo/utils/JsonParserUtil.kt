@@ -9,7 +9,7 @@ import java.io.InputStream
 
 
 
-object JsonParser {
+object JsonParserUtil {
     fun getOptionItems(context: Context) : OptionData {
         val json: String? = inputStreamToString(context.resources.openRawResource(com.thingstodo.R.raw.options))
         val model = Gson().fromJson(json, OptionData::class.java)     // No need to add TypeAdapter

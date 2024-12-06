@@ -3,7 +3,7 @@ package com.thingstodo.utils
 import android.content.Context
 import android.content.pm.PackageManager
 
-object ManifestUtils {
+object ManifestUtil {
     fun getApiKeyFromManifest(context: Context): String? {
         return try {
             val applicationInfo = context.packageManager

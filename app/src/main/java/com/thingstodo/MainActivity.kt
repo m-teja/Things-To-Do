@@ -50,7 +50,7 @@ import com.thingstodo.model.Search
 import com.thingstodo.screens.SettingsScreen
 import com.thingstodo.screens.UserLocationRequest
 import com.thingstodo.ui.AppTheme
-import com.thingstodo.utils.ManifestUtils
+import com.thingstodo.utils.ManifestUtil
 
 class MainActivity : ComponentActivity() {
 
@@ -129,7 +129,7 @@ class MainActivity : ComponentActivity() {
     private fun MainNavigationBar(navController: NavHostController) {
         val screenLevelRoutes = listOf(
             ScreenLevelRoute(name = "Home", route = HomeRoute, icon = Icons.Outlined.Home),
-            ScreenLevelRoute(name = "Map", route = MapRoute("mcdonalds", 10), icon = Icons.Outlined.LocationOn),
+            ScreenLevelRoute(name = "Map", route = MapRoute("", 0), icon = Icons.Outlined.LocationOn),
             ScreenLevelRoute(name = "Settings", route = SettingsRoute, icon =  Icons.Outlined.Settings)
         )
 
@@ -169,7 +169,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun initPlaces() {
-        val apiKey = ManifestUtils.getApiKeyFromManifest(this)
+        val apiKey = ManifestUtil.getApiKeyFromManifest(this)
         if (!Places.isInitialized() && apiKey != null) {
             Places.initializeWithNewPlacesApiEnabled(applicationContext, apiKey)
             placesClient = Places.createClient(this)
