@@ -38,7 +38,7 @@ class MapViewModel(search: Search) : ViewModel() {
 
         // Use the builder to create a SearchByTextRequest object.
         val searchByTextRequest = SearchByTextRequest.builder(searchQuery.value.query, placeFields)
-            .setMaxResultCount(10)
+            .setMaxResultCount(5)
             .setLocationBias(CircularBounds.newInstance(_userLocation.value, searchQuery.value.radius.toDouble())).build()
         println(searchByTextRequest)
 

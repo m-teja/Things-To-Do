@@ -120,9 +120,13 @@ fun Map(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
         mapColorScheme = ComposeMapColorScheme.DARK,
-        properties = MapProperties(isMyLocationEnabled = true),
+        properties = MapProperties(isMyLocationEnabled = isLocationGranted(context)),
         onMapLoaded = {
-            if (placesOfInterest.isNotEmpty() && !hasSetInitialLocation) {
+            if (!isLocationGranted(context)) {
+                coroutineScope.launch {
+                    cameraPositionState.position = CameraPosition.fromLatLngZoom(LatLng(0.0, 0.0), 0f)
+                }
+            } else if (placesOfInterest.isNotEmpty() && !hasSetInitialLocation) {
                 hasSetInitialLocation = true
                 coroutineScope.launch {
                     val cameraUpdate = CameraUpdateFactory.newLatLngBounds(cameraBounds, 100)
@@ -183,7 +187,7 @@ fun Map(
                                 )
 
                                 Text(
-                                    text = distanceBetween.toString() + " km away",
+                                    text = "$distanceBetween km away",
                                     fontSize = 14.sp
                                 )
 

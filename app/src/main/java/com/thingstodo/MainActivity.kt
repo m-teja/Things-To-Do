@@ -1,6 +1,7 @@
 package com.thingstodo
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -21,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,8 +51,10 @@ import com.thingstodo.model.MapViewModelFactory
 import com.thingstodo.model.Search
 import com.thingstodo.screens.SettingsScreen
 import com.thingstodo.screens.UserLocationRequest
+import com.thingstodo.screens.isLocationGranted
 import com.thingstodo.ui.AppTheme
 import com.thingstodo.utils.ManifestUtil
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -78,11 +82,17 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun MainScreen() {
+        val context = LocalContext.current
+
         val navController = rememberNavController()
         val homeViewModel: HomeViewModel = viewModel()
         val mapViewModel: MapViewModel = viewModel(factory = MapViewModelFactory(Search()))
 
-        RequestPermissions(mapViewModel)
+        RequestPermissions(mapViewModel = mapViewModel, onFinished = {
+            if (!it) {
+                Toast.makeText(context, "Location permissions were not granted.", Toast.LENGTH_LONG).show()
+            }
+        })
         Surface(
             modifier = Modifier.fillMaxSize(),
         ) {
@@ -99,7 +109,7 @@ class MainActivity : ComponentActivity() {
                         HomeScreen(
                             homeViewModel = homeViewModel,
                             onNavigateToMapScreen = { query, radius ->
-                                if (!mapViewModel.searchQuery.equals(query)) {
+                                if (!mapViewModel.searchQuery.equals(query) && isLocationGranted(context)) {
                                     mapViewModel.updateSearchQuery(Search(query, radius))
                                     mapViewModel.updatePlacesOfInterest(placesClient)
                                 }
@@ -156,7 +166,10 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun RequestPermissions(mapViewModel: MapViewModel) {
+    fun RequestPermissions(
+        mapViewModel: MapViewModel,
+        onFinished: (Boolean) -> Unit
+    ) {
         val context = LocalContext.current
         val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
         val userLocation by mapViewModel.userLocation.collectAsState()
@@ -165,6 +178,7 @@ class MainActivity : ComponentActivity() {
             fusedLocationClient = fusedLocationClient,
             userLocation = userLocation,
             updateUserLocation = mapViewModel::updateUserLocation,
+            onFinished = onFinished
         )
     }
 

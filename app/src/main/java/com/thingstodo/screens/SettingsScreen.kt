@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.thingstodo.MainActivity
 import com.thingstodo.ui.AppTheme
 import com.thingstodo.utils.SharedPreferencesUtil
 import com.thingstodo.utils.SharedPreferencesUtil.DELETE_KEY
@@ -54,8 +55,6 @@ fun SettingsScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
-
-        NumResultsDropDownMenu()
 
         Button(
             onClick = {
@@ -82,57 +81,5 @@ fun SettingsScreen(
 //                }
 //            }
 //        )
-    }
-
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun NumResultsDropDownMenu() {
-    val context = LocalContext.current
-    var expanded by remember { mutableStateOf(true) }
-    val focusRequester = remember { FocusRequester() }
-    var selectedNum by remember { mutableStateOf(SharedPreferencesUtil.getMaximumNumResults(context)) }
-
-    ExposedDropdownMenuBox (
-        modifier = Modifier.wrapContentSize(),
-        expanded = expanded,
-        onExpandedChange = {
-            expanded = !expanded
-        }
-    ) {
-
-        OutlinedTextField (
-            modifier = Modifier
-                .wrapContentSize()
-                .focusRequester(focusRequester),
-            singleLine = true,
-            placeholder = {
-
-            },
-            readOnly = true,
-            value = selectedNum.toString(),
-            onValueChange = {
-                selectedNum = it.toInt()
-                SharedPreferencesUtil.setMaximumNumResults(context, selectedNum)
-            },
-        )
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-
-            for (i in 1 until 11) {
-                DropdownMenuItem(
-                    text = { Text(text = i.toString()) },
-                    onClick = {
-                        selectedNum = i
-                        expanded = false
-                    }
-                )
-            }
-        }
-
     }
 }
