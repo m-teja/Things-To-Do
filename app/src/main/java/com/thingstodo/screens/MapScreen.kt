@@ -78,6 +78,7 @@ import com.thingstodo.model.MapViewModel
 import com.thingstodo.model.MapViewModelFactory
 import com.thingstodo.model.Search
 import com.thingstodo.ui.AppTheme
+import com.thingstodo.utils.SharedPreferencesUtil
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.round
@@ -109,17 +110,23 @@ fun Map(
     val context = LocalContext.current
     var hasSetInitialLocation by remember { mutableStateOf(false) }
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(userLocation, 15f)
+        position = CameraPosition.fromLatLngZoom(userLocation, 12f)
     }
     val coroutineScope = rememberCoroutineScope()
     var cameraBounds by rememberSaveable {
         mutableStateOf(LatLngBounds(LatLng(0.0, 0.0), LatLng(0.0, 0.0)))
     }
 
+    val colorScheme = if (SharedPreferencesUtil.isDarkModeMap(context)) {
+        ComposeMapColorScheme.DARK
+    } else {
+        ComposeMapColorScheme.LIGHT
+    }
+
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
-        mapColorScheme = ComposeMapColorScheme.DARK,
+        mapColorScheme = colorScheme,
         properties = MapProperties(isMyLocationEnabled = isLocationGranted(context)),
         onMapLoaded = {
             if (!isLocationGranted(context)) {
