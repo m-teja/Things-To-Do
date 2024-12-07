@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.thingstodo"
+    namespace = "com.teja_app_productions_things_to_do"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.thingstodo"
+        applicationId = "com.teja_app_productions_things_to_do"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

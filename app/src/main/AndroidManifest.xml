@@ -10,10 +10,10 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
-        android:theme="@style/Theme.thingstodo.Starting"
+        android:theme="@style/Theme.teja_app_productions_things_to_do.Starting"
         tools:targetApi="31">
         <activity
-            android:name="com.thingstodo.MainActivity"
+            android:name="com.teja_app_productions_things_to_do.MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustNothing"
             android:screenOrientation="portrait"

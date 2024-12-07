@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.thingstodo" parent="Theme.Material3.Dark">
+    <style name="Theme.teja_app_productions_things_to_do" parent="Theme.Material3.Dark">
     </style>
-    <style name="Theme.thingstodo.Starting" parent="Theme.SplashScreen">
+    <style name="Theme.teja_app_productions_things_to_do.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
         <item name="postSplashScreenTheme">@style/Theme.Material3.Dark</item>
     </style>

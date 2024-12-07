@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "thingstodo"
+rootProject.name = "teja_app_productions_things_to_do"
 include(":app")
