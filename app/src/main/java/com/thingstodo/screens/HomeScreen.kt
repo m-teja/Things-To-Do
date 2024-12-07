@@ -1,7 +1,6 @@
 package com.thingstodo.screens
 
 import android.content.Context
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +18,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -56,7 +54,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
@@ -69,7 +66,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.thingstodo.R
@@ -88,7 +84,7 @@ import kotlin.math.floor
 @Composable
 fun HomeScreenPreview() {
     AppTheme {
-        HomeScreen(onNavigateToMapScreen = {_, _ -> })
+        HomeScreen(onNavigateToMapScreen = { _, _ -> })
     }
 }
 
@@ -97,7 +93,7 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
     onNavigateToMapScreen: (String, Int) -> Unit
 ) {
-    getOptionItemListFromJson(LocalContext.current, homeViewModel::setFullOptionItemList)
+    GetOptionItemListFromJson(LocalContext.current, homeViewModel::setFullOptionItemList)
     homeViewModel.updateCurrentOptionItemList(LocalContext.current)
 
     val currentOptionItemList = homeViewModel.currentOptionItemList
@@ -158,12 +154,13 @@ fun OptionList(
                 }
             ) { index, optionItem ->
 
-                Column (
+                Column(
                     modifier = Modifier.animateItem(),
                     verticalArrangement = Arrangement.spacedBy(15.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    val isStartOfCategory = (index == 0 || optionItems[index - 1].category != optionItem.category)
+                    val isStartOfCategory =
+                        (index == 0 || optionItems[index - 1].category != optionItem.category)
                     if (isStartOfCategory) {
                         Text(
                             modifier = Modifier.padding(top = 10.dp),
@@ -207,7 +204,7 @@ fun OptionList(
         )
 
         var buttonOffset: Offset by remember { mutableStateOf(Offset.Zero) }
-        Column (
+        Column(
             modifier = Modifier
                 .background(color = MaterialTheme.colorScheme.surface)
                 .onGloballyPositioned {
@@ -229,7 +226,7 @@ fun OptionList(
                 })
             }
 
-            Row (
+            Row(
                 modifier = Modifier
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -283,7 +280,7 @@ fun TutorialDialog(
         mutableStateOf((-1000).dp) // outside
     }
 
-    BasicAlertDialog (
+    BasicAlertDialog(
         modifier = Modifier
             .clickable {
                 onFinishTutorial()
@@ -294,18 +291,18 @@ fun TutorialDialog(
     ) {
         (LocalView.current.parent as DialogWindowProvider).window.setDimAmount(0.5f)
 
-        Column (
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(10.dp)
                 .offset(x = 0.dp, y = dpOffset),
         ) {
-            Column (
+            Column(
                 modifier = Modifier
                     .wrapContentSize()
                     .onGloballyPositioned {
                         val position = buttonOffset.y - it.size.height
-                        dpOffset = with (density) {
+                        dpOffset = with(density) {
                             position.toDp()
                         }
                         println(buttonOffset)
@@ -356,7 +353,7 @@ fun FilterDialog(onClose: (Set<String>) -> Unit) {
     val newFilteredSet = remember { mutableStateListOf<String>() }
     newFilteredSet.addAll(currentFilteredSet)
 
-    fun addFilter (filter: String) {
+    fun addFilter(filter: String) {
         newFilteredSet.add(filter)
     }
 
@@ -364,16 +361,16 @@ fun FilterDialog(onClose: (Set<String>) -> Unit) {
         newFilteredSet.remove(filter)
     }
 
-    Dialog (
+    Dialog(
         onDismissRequest = {
             onClose(newFilteredSet.toSet())
         },
     ) {
         (LocalView.current.parent as DialogWindowProvider).window.setDimAmount(0.9f)
-        Card (
+        Card(
             shape = RoundedCornerShape(16.dp)
         ) {
-            Column (
+            Column(
                 modifier = Modifier
                     .wrapContentSize()
                     .padding(16.dp),
@@ -385,18 +382,42 @@ fun FilterDialog(onClose: (Set<String>) -> Unit) {
                     fontSize = 20.sp
                 )
 
-                FilterRow(HomeViewModel.RECREATION, HomeViewModel.SPORTS, newFilteredSet, ::addFilter, ::removeFilter)
-                FilterRow(HomeViewModel.SHOPPING, HomeViewModel.HOSPITALITY, newFilteredSet, ::addFilter, ::removeFilter)
-                FilterRow(HomeViewModel.CULTURE, HomeViewModel.EDUCATION, newFilteredSet, ::addFilter, ::removeFilter)
-                FilterRow(HomeViewModel.RELIGION, HomeViewModel.OTHER, newFilteredSet, ::addFilter, ::removeFilter)
+                FilterRow(
+                    HomeViewModel.RECREATION,
+                    HomeViewModel.SPORTS,
+                    newFilteredSet,
+                    ::addFilter,
+                    ::removeFilter
+                )
+                FilterRow(
+                    HomeViewModel.SHOPPING,
+                    HomeViewModel.HOSPITALITY,
+                    newFilteredSet,
+                    ::addFilter,
+                    ::removeFilter
+                )
+                FilterRow(
+                    HomeViewModel.CULTURE,
+                    HomeViewModel.EDUCATION,
+                    newFilteredSet,
+                    ::addFilter,
+                    ::removeFilter
+                )
+                FilterRow(
+                    HomeViewModel.RELIGION,
+                    HomeViewModel.OTHER,
+                    newFilteredSet,
+                    ::addFilter,
+                    ::removeFilter
+                )
 
-                Row (
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    TextButton (
+                    TextButton(
                         onClick = {
                             newFilteredSet.clear()
                         },
@@ -405,7 +426,7 @@ fun FilterDialog(onClose: (Set<String>) -> Unit) {
                         Text("SELECT ALL")
                     }
 
-                    TextButton (
+                    TextButton(
                         onClick = { onClose(newFilteredSet.toSet()) },
                         modifier = Modifier.padding(8.dp),
                     ) {
@@ -426,11 +447,11 @@ fun FilterRow(
     removeFilter: (filter: String) -> Unit
 ) {
 
-    Row (
+    Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row (
+        Row(
             modifier = Modifier.fillMaxWidth(0.5f),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
@@ -447,11 +468,11 @@ fun FilterRow(
             )
         }
 
-        Row (
+        Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
-        ){
+        ) {
             Text(
                 text = category2,
                 fontSize = 14.sp
@@ -500,10 +521,10 @@ fun SearchActivityBar(
     val focusRequester = remember { FocusRequester() }
     var hasChanged by rememberSaveable { mutableStateOf(false) }
 
-    Row (
+    Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
-        OutlinedTextField (
+        OutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f, fill = false)
@@ -555,7 +576,7 @@ fun Option(
     var currentlyHighlighted by remember { mutableStateOf(false) }
 
     if (isHighlightedAnimation) {
-        LaunchedEffect (true) {
+        LaunchedEffect(true) {
             for (i in 0 until 3) {
                 currentlyHighlighted = true
                 delay(200)
@@ -567,7 +588,7 @@ fun Option(
         }
     }
 
-    Card (
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 5.dp),
@@ -580,20 +601,20 @@ fun Option(
             onNavigateToMapScreen(optionItem.activity, 10)
         }
     ) {
-        Column (
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 10.dp),
         ) {
-            Row (
+            Row(
                 modifier = Modifier
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Absolute.SpaceBetween
             ) {
-                Column (
+                Column(
                     verticalArrangement = Arrangement.spacedBy(6.dp)
-                ){
+                ) {
                     Text(
                         fontFamily = FontFamily.Serif,
                         text = optionItem.activity,
@@ -620,14 +641,14 @@ fun Option(
             }
             val message = "Search for " + middleWord + " " + optionItem.activity
 
-            Row (
+            Row(
                 modifier = Modifier
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Absolute.SpaceBetween
             ) {
 
-                IconButton (
+                IconButton(
                     onClick = {
                         onDelete()
                     }
@@ -641,15 +662,15 @@ fun Option(
                     )
                 }
 
-                Row (
+                Row(
                 ) {
                     Text(
                         fontFamily = FontFamily.Serif,
                         fontSize = 14.sp,
-                        text =  message
+                        text = message
                     )
 
-                    Icon (
+                    Icon(
                         modifier = Modifier.padding(start = 4.dp),
                         imageVector = ImageVector.vectorResource(R.drawable.link_search_icon),
                         contentDescription = "link search"
@@ -662,9 +683,10 @@ fun Option(
 }
 
 @Composable
-private fun getOptionItemListFromJson(
+private fun GetOptionItemListFromJson(
     context: Context,
-    setFullOptionItemList: (list: List<OptionItem>) -> Unit) {
+    setFullOptionItemList: (list: List<OptionItem>) -> Unit
+) {
     val optionItems = JsonParserUtil.getOptionItems(context)
 
     val optionItemList = mutableListOf<OptionItem>()

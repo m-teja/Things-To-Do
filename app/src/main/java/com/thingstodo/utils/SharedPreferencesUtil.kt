@@ -9,12 +9,15 @@ object SharedPreferencesUtil {
     private const val IS_FIRST_TIME = "THINGS_TO_DO_IS_FIRST_TIME"
 
     fun isDarkModeMap(context: Context): Boolean {
-        val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)?: return true
+        val sharedPreferences =
+            androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
+                ?: return true
         return sharedPreferences.getBoolean(DARK_MODE_MAP, true)
     }
 
     fun setDarkModeMap(context: Context, isDarkMode: Boolean) {
-        val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)?: return
+        val sharedPreferences =
+            androidx.preference.PreferenceManager.getDefaultSharedPreferences(context) ?: return
         with(sharedPreferences.edit()) {
             putBoolean(DARK_MODE_MAP, isDarkMode)
             apply()
@@ -22,12 +25,15 @@ object SharedPreferencesUtil {
     }
 
     fun isFirstTime(context: Context): Boolean {
-        val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)?: return true
+        val sharedPreferences =
+            androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
+                ?: return true
         return sharedPreferences.getBoolean(IS_FIRST_TIME, true)
     }
 
     fun setFirstTime(context: Context, isFirstTime: Boolean) {
-        val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)?: return
+        val sharedPreferences =
+            androidx.preference.PreferenceManager.getDefaultSharedPreferences(context) ?: return
         with(sharedPreferences.edit()) {
             putBoolean(IS_FIRST_TIME, isFirstTime)
             apply()

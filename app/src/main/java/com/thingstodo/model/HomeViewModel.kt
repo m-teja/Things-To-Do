@@ -29,13 +29,14 @@ class HomeViewModel : ViewModel() {
     fun updateCurrentOptionItemList(context: Context) {
         _currentOptionItemList.clear()
 
-        val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)?: return
+        val sharedPreferences =
+            androidx.preference.PreferenceManager.getDefaultSharedPreferences(context) ?: return
 
         val currentDeleteSet = sharedPreferences.getStringSet(DELETE_KEY, setOf())?.toMutableSet()
         val currentFilteredSet = sharedPreferences.getStringSet(FILTER_KEY, setOf())?.toMutableSet()
 
         val filteredList = _fullOptionItemList.value.filter { optionItem ->
-            !(currentDeleteSet?.contains(optionItem.activity)?: true) &&
+            !(currentDeleteSet?.contains(optionItem.activity) ?: true) &&
                     !(currentFilteredSet?.contains(optionItem.category) ?: true) &&
                     optionItem.activity.lowercase().contains(currentSearchQuery.value)
         }
@@ -43,7 +44,8 @@ class HomeViewModel : ViewModel() {
     }
 
     fun updateCurrentFilter(context: Context, filteredCategories: Set<String>) {
-        val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)?: return
+        val sharedPreferences =
+            androidx.preference.PreferenceManager.getDefaultSharedPreferences(context) ?: return
 
         with(sharedPreferences.edit()) {
             putStringSet(FILTER_KEY, filteredCategories)
@@ -61,7 +63,8 @@ class HomeViewModel : ViewModel() {
 
     fun removeItem(context: Context, optionItem: OptionItem) {
         _currentOptionItemList.remove(optionItem)
-        val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)?: return
+        val sharedPreferences =
+            androidx.preference.PreferenceManager.getDefaultSharedPreferences(context) ?: return
         val currentDeleteSet = sharedPreferences.getStringSet(DELETE_KEY, setOf())?.toMutableSet()
 
         with(sharedPreferences.edit()) {
@@ -75,7 +78,8 @@ class HomeViewModel : ViewModel() {
 
     fun addItem(context: Context, optionItem: OptionItem) {
         _currentOptionItemList.add(optionItem)
-        val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)?: return
+        val sharedPreferences =
+            androidx.preference.PreferenceManager.getDefaultSharedPreferences(context) ?: return
         val currentDeleteSet = sharedPreferences.getStringSet(DELETE_KEY, setOf())?.toMutableSet()
 
         with(sharedPreferences.edit()) {
@@ -100,8 +104,9 @@ class HomeViewModel : ViewModel() {
         const val OTHER: String = "Other"
 
         fun getCurrentFilter(context: Context): Set<String> {
-            val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
-            return sharedPreferences.getStringSet(FILTER_KEY, setOf())?: setOf()
+            val sharedPreferences =
+                androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
+            return sharedPreferences.getStringSet(FILTER_KEY, setOf()) ?: setOf()
         }
     }
 }

@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -50,12 +49,16 @@ fun UserLocationRequest(
     LaunchedEffect(Unit) {
         when (PackageManager.PERMISSION_GRANTED) {
             // Check if the location permission is already granted
-            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) -> {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) -> {
                 // Fetch the user's location and update the camera
                 if (userLocation.latitude == 0.0 && userLocation.longitude == 0.0) {
                     fetchUserLocation(context, fusedLocationClient, onSuccessListener, onFinished)
                 }
             }
+
             else -> {
                 // Request the location permission if it has not been granted
                 permissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -65,7 +68,10 @@ fun UserLocationRequest(
 }
 
 fun isLocationGranted(context: Context): Boolean {
-    return (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+    return (ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED)
 }
 
 private fun fetchUserLocation(
@@ -75,7 +81,11 @@ private fun fetchUserLocation(
     onFinished: (Boolean) -> Unit
 ) {
     // Check if the location permission is granted
-    if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+    if (ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+    ) {
         try {
             // Fetch the last known location
             fusedLocationClient.lastLocation.addOnSuccessListener(onSuccessListener)

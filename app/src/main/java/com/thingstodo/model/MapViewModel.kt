@@ -1,6 +1,5 @@
 package com.thingstodo.model
 
-import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.maps.model.LatLng
@@ -24,7 +23,7 @@ class MapViewModel(search: Search) : ViewModel() {
     private val _placesOfInterest = MutableStateFlow<List<Place>>(emptyList())
     val placesOfInterest: StateFlow<List<Place>> = _placesOfInterest.asStateFlow()
 
-    fun updateSearchQuery(search : Search) {
+    fun updateSearchQuery(search: Search) {
         _searchQuery.value = search
     }
 
@@ -34,12 +33,18 @@ class MapViewModel(search: Search) : ViewModel() {
 
     fun updatePlacesOfInterest(placesClient: PlacesClient) {
         // Specify the list of fields to return.
-        val placeFields = listOf(Place.Field.DISPLAY_NAME, Place.Field.LOCATION, Place.Field.FORMATTED_ADDRESS)
+        val placeFields =
+            listOf(Place.Field.DISPLAY_NAME, Place.Field.LOCATION, Place.Field.FORMATTED_ADDRESS)
 
         // Use the builder to create a SearchByTextRequest object.
         val searchByTextRequest = SearchByTextRequest.builder(searchQuery.value.query, placeFields)
             .setMaxResultCount(5)
-            .setLocationBias(CircularBounds.newInstance(_userLocation.value, searchQuery.value.radius.toDouble())).build()
+            .setLocationBias(
+                CircularBounds.newInstance(
+                    _userLocation.value,
+                    searchQuery.value.radius.toDouble()
+                )
+            ).build()
         println(searchByTextRequest)
 
         // Call PlacesClient.searchByText() to perform the search.
@@ -48,7 +53,7 @@ class MapViewModel(search: Search) : ViewModel() {
             .addOnSuccessListener { response ->
                 _placesOfInterest.value = response.places
                 println(response)
-        }
+            }
     }
 }
 
@@ -61,6 +66,6 @@ class MapViewModelFactory(private val search: Search) : ViewModelProvider.Factor
 
 @Serializable
 data class Search(
-    val query : String = "",
-    val radius : Int = 0,
+    val query: String = "",
+    val radius: Int = 0,
 )

@@ -22,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,8 +38,6 @@ import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.location.LocationServices
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
-import com.thingstodo.screens.HomeScreen
-import com.thingstodo.screens.MapScreen
 import com.thingstodo.data.HomeRoute
 import com.thingstodo.data.MapRoute
 import com.thingstodo.data.ScreenLevelRoute
@@ -49,12 +46,13 @@ import com.thingstodo.model.HomeViewModel
 import com.thingstodo.model.MapViewModel
 import com.thingstodo.model.MapViewModelFactory
 import com.thingstodo.model.Search
+import com.thingstodo.screens.HomeScreen
+import com.thingstodo.screens.MapScreen
 import com.thingstodo.screens.SettingsScreen
 import com.thingstodo.screens.UserLocationRequest
 import com.thingstodo.screens.isLocationGranted
 import com.thingstodo.ui.AppTheme
 import com.thingstodo.utils.ManifestUtil
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -90,7 +88,8 @@ class MainActivity : ComponentActivity() {
 
         RequestPermissions(mapViewModel = mapViewModel, onFinished = {
             if (!it) {
-                Toast.makeText(context, "Location permissions were not granted.", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "Location permissions were not granted.", Toast.LENGTH_LONG)
+                    .show()
             }
         })
         Surface(
@@ -109,7 +108,10 @@ class MainActivity : ComponentActivity() {
                         HomeScreen(
                             homeViewModel = homeViewModel,
                             onNavigateToMapScreen = { query, radius ->
-                                if (!mapViewModel.searchQuery.equals(query) && isLocationGranted(context)) {
+                                if (!mapViewModel.searchQuery.equals(query) && isLocationGranted(
+                                        context
+                                    )
+                                ) {
                                     mapViewModel.updateSearchQuery(Search(query, radius))
                                     mapViewModel.updatePlacesOfInterest(placesClient)
                                 }
@@ -150,16 +152,29 @@ class MainActivity : ComponentActivity() {
     private fun MainNavigationBar(navController: NavHostController) {
         val screenLevelRoutes = listOf(
             ScreenLevelRoute(name = "Home", route = HomeRoute, icon = Icons.Outlined.Home),
-            ScreenLevelRoute(name = "Map", route = MapRoute("", 0), icon = Icons.Outlined.LocationOn),
-            ScreenLevelRoute(name = "Settings", route = SettingsRoute, icon =  Icons.Outlined.Settings)
+            ScreenLevelRoute(
+                name = "Map",
+                route = MapRoute("", 0),
+                icon = Icons.Outlined.LocationOn
+            ),
+            ScreenLevelRoute(
+                name = "Settings",
+                route = SettingsRoute,
+                icon = Icons.Outlined.Settings
+            )
         )
 
         NavigationBar {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentDestination = navBackStackEntry?.destination
             screenLevelRoutes.forEach { screenLevelRoute ->
-                NavigationBarItem (
-                    icon = { Icon(screenLevelRoute.icon, contentDescription = screenLevelRoute.name) },
+                NavigationBarItem(
+                    icon = {
+                        Icon(
+                            screenLevelRoute.icon,
+                            contentDescription = screenLevelRoute.name
+                        )
+                    },
                     label = { Text(screenLevelRoute.name) },
                     selected = currentDestination?.hierarchy?.any { it.hasRoute(screenLevelRoute.route::class) } == true,
                     onClick = {
@@ -182,7 +197,8 @@ class MainActivity : ComponentActivity() {
         onFinished: (Boolean) -> Unit
     ) {
         val context = LocalContext.current
-        val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+        val fusedLocationClient =
+            remember { LocationServices.getFusedLocationProviderClient(context) }
         val userLocation by mapViewModel.userLocation.collectAsState()
 
         UserLocationRequest(
