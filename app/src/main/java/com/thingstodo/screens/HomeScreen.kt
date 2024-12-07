@@ -3,15 +3,19 @@ package com.thingstodo.screens
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -41,11 +45,17 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.vectorResource
@@ -63,6 +73,7 @@ import com.thingstodo.model.HomeViewModel
 import com.thingstodo.model.OptionItem
 import com.thingstodo.ui.AppTheme
 import com.thingstodo.utils.JsonParserUtil
+import com.thingstodo.utils.SharedPreferencesUtil
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.floor
@@ -111,6 +122,7 @@ fun OptionList(
 
     var scrollToIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     var showFilterDialog by remember { mutableStateOf(false) }
+    var showTutorialDialog by remember { mutableStateOf(false) }
     var showSearchBar by remember { mutableStateOf(false) }
 
     if (showFilterDialog) {
@@ -188,13 +200,24 @@ fun OptionList(
             hostState = undoSnackBarHostState,
         )
 
+        var buttonOffset: Offset by remember { mutableStateOf(Offset.Zero) }
         Column (
-            modifier = Modifier.background(color = MaterialTheme.colorScheme.surface)
+            modifier = Modifier
+                .background(color = MaterialTheme.colorScheme.surface)
+                .onGloballyPositioned {
+                    buttonOffset = Offset(it.positionInParent().x, it.positionInParent().y)
+                    println(buttonOffset)
+                    showTutorialDialog = SharedPreferencesUtil.isFirstTime(context)
+                }
         ) {
             if (showSearchBar) {
                 SearchActivityBar(updateCurrentSearch, onClose = {
                     showSearchBar = false
                 })
+            }
+
+            if (showTutorialDialog) {
+                TutorialDialog(buttonOffset)
             }
 
             Row (
@@ -206,7 +229,7 @@ fun OptionList(
                     showFilterDialog = true
                 })
 
-                randomButton(onClick = {
+                RandomButton(onClick = {
                     coroutineScope.launch {
                         if (optionItems.isNotEmpty()) {
                             val randIndex = floor(Math.random() * optionItems.size).toInt()
@@ -216,7 +239,7 @@ fun OptionList(
                     }
                 })
 
-                searchButton(onClick = {
+                SearchButton(onClick = {
                     showSearchBar = !showSearchBar
                     if (!showSearchBar) {
                         updateCurrentSearch(context, "")
@@ -237,6 +260,68 @@ fun FilterButton(onClick: () -> Unit) {
             imageVector = ImageVector.vectorResource(R.drawable.filter_icon),
             contentDescription = "filter"
         )
+    }
+}
+
+@Composable
+fun TutorialDialog(buttonOffset: Offset) {
+    val density = LocalDensity.current
+    var dpOffset by remember {
+        mutableStateOf((-1000).dp) // outside
+    }
+
+    Dialog (
+        onDismissRequest = {},
+    ) {
+        (LocalView.current.parent as DialogWindowProvider).window.setDimAmount(0.9f)
+        Column (
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp)
+                .offset(x = 0.dp, y = dpOffset),
+        ) {
+            Column (
+                modifier = Modifier
+                    .wrapContentSize()
+                    .onGloballyPositioned {
+                        val position = buttonOffset.y - it.size.height
+                        dpOffset = with (density) {
+                            position.toDp()
+                        }
+                        println(buttonOffset)
+                        println(it.size)
+                    },
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Card(
+                    elevation = CardDefaults.cardElevation(4.dp),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+
+                        Text(
+                            text = "Tap \"Randomize!\" to randomly select an activity",
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(15.dp) // Adjust arrow size
+                        .clip(
+                            GenericShape { size, _ ->
+                                moveTo(0f, 0f) // Top left
+                                lineTo(size.width / 2f, size.height) // Bottom center
+                                lineTo(size.width, 0f) // Top right
+                            }
+                        )
+                        .background(color = CardDefaults.cardColors().containerColor)
+                )
+            }
+        }
     }
 }
 
@@ -357,7 +442,7 @@ fun FilterRow(
 }
 
 @Composable
-fun randomButton(onClick: () -> Unit) {
+fun RandomButton(onClick: () -> Unit) {
     Button(
         onClick = onClick
     ) {
@@ -366,7 +451,7 @@ fun randomButton(onClick: () -> Unit) {
 }
 
 @Composable
-fun searchButton(onClick: () -> Unit) {
+fun SearchButton(onClick: () -> Unit) {
     IconButton(
         onClick = onClick
     ) {
@@ -567,4 +652,12 @@ private fun getOptionItemListFromJson(
     }
 
     setFullOptionItemList(optionItemList)
+}
+
+fun Modifier.customDialogModifier() = layout { measurable, constraints ->
+
+    val placeable = measurable.measure(constraints);
+    layout(constraints.maxWidth, constraints.maxHeight){
+        placeable.place(0, constraints.maxHeight - placeable.height, 10f)
+    }
 }
