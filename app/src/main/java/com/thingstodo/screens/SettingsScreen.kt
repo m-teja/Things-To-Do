@@ -1,6 +1,7 @@
 package com.thingstodo.screens
 
 import android.content.Context
+import android.widget.Button
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -45,19 +46,23 @@ import com.thingstodo.utils.SharedPreferencesUtil.DELETE_KEY
 @Composable
 fun SettingsScreenPreview() {
     AppTheme {
-        SettingsScreen {}
+        SettingsScreen(
+            updateCurrentOptionItemList = {},
+            onNavigateToHomeScreen = {}
+        )
     }
 }
 
 @Composable
 fun SettingsScreen(
-    updateCurrentOptionItemList: (Context) -> Unit
+    updateCurrentOptionItemList: (Context) -> Unit,
+    onNavigateToHomeScreen: () -> Unit
 ) {
     val context = LocalContext.current
 
     var isDarkModeChecked by remember { mutableStateOf(SharedPreferencesUtil.isDarkModeMap(context)) }
 
-    Column (
+    Column(
         modifier = Modifier
             .fillMaxHeight(0.5f)
             .fillMaxWidth(),
@@ -65,7 +70,7 @@ fun SettingsScreen(
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
 
-        Row (
+        Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -83,7 +88,17 @@ fun SettingsScreen(
 
         Button(
             onClick = {
-                val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
+                SharedPreferencesUtil.setFirstTime(context, true)
+                onNavigateToHomeScreen()
+            }
+        ) {
+            Text("Show tutorial again")
+        }
+
+        Button(
+            onClick = {
+                val sharedPreferences =
+                    androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
                 with(sharedPreferences.edit()) {
                     putStringSet(DELETE_KEY, setOf())
                     apply()

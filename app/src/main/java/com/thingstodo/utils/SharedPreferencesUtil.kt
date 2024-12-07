@@ -29,7 +29,7 @@ object SharedPreferencesUtil {
     fun setFirstTime(context: Context, isFirstTime: Boolean) {
         val sharedPreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)?: return
         with(sharedPreferences.edit()) {
-            putBoolean(DARK_MODE_MAP, isFirstTime)
+            putBoolean(IS_FIRST_TIME, isFirstTime)
             apply()
         }
     }

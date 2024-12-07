@@ -1,7 +1,9 @@
 package com.thingstodo.screens
 
 import android.content.Context
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,10 +19,13 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -64,6 +69,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.thingstodo.R
@@ -217,7 +223,10 @@ fun OptionList(
             }
 
             if (showTutorialDialog) {
-                TutorialDialog(buttonOffset)
+                TutorialDialog(buttonOffset, onFinishTutorial = {
+                    showTutorialDialog = false
+                    SharedPreferencesUtil.setFirstTime(context, false)
+                })
             }
 
             Row (
@@ -263,17 +272,28 @@ fun FilterButton(onClick: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TutorialDialog(buttonOffset: Offset) {
+fun TutorialDialog(
+    buttonOffset: Offset,
+    onFinishTutorial: () -> Unit
+) {
     val density = LocalDensity.current
     var dpOffset by remember {
         mutableStateOf((-1000).dp) // outside
     }
 
-    Dialog (
-        onDismissRequest = {},
+    BasicAlertDialog (
+        modifier = Modifier
+            .clickable {
+                onFinishTutorial()
+            },
+        onDismissRequest = {
+            onFinishTutorial()
+        },
     ) {
-        (LocalView.current.parent as DialogWindowProvider).window.setDimAmount(0.9f)
+        (LocalView.current.parent as DialogWindowProvider).window.setDimAmount(0.5f)
+
         Column (
             modifier = Modifier
                 .fillMaxSize()
@@ -294,16 +314,21 @@ fun TutorialDialog(buttonOffset: Offset) {
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
                     elevation = CardDefaults.cardElevation(4.dp),
                 ) {
                     Column(
                         modifier = Modifier.padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-
                         Text(
                             text = "Tap \"Randomize!\" to randomly select an activity",
-                            fontSize = 14.sp
+                            fontSize = 16.sp
+                        )
+
+                        Text(
+                            text = "Then tap on any activity to display places near you",
+                            fontSize = 16.sp
                         )
                     }
                 }
@@ -318,7 +343,7 @@ fun TutorialDialog(buttonOffset: Offset) {
                                 lineTo(size.width, 0f) // Top right
                             }
                         )
-                        .background(color = CardDefaults.cardColors().containerColor)
+                        .background(color = MaterialTheme.colorScheme.primary)
                 )
             }
         }
@@ -652,12 +677,4 @@ private fun getOptionItemListFromJson(
     }
 
     setFullOptionItemList(optionItemList)
-}
-
-fun Modifier.customDialogModifier() = layout { measurable, constraints ->
-
-    val placeable = measurable.measure(constraints);
-    layout(constraints.maxWidth, constraints.maxHeight){
-        placeable.place(0, constraints.maxHeight - placeable.height, 10f)
-    }
 }

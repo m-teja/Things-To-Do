@@ -128,7 +128,18 @@ class MainActivity : ComponentActivity() {
                         MapScreen(mapViewModel = mapViewModel)
                     }
                     composable<SettingsRoute> {
-                        SettingsScreen(homeViewModel::updateCurrentOptionItemList)
+                        SettingsScreen(
+                            homeViewModel::updateCurrentOptionItemList,
+                            onNavigateToHomeScreen = {
+                                navController.navigate(route = HomeRoute) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        )
                     }
                 }
             }
