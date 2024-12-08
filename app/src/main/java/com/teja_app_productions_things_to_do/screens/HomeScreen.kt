@@ -460,7 +460,11 @@ fun FilterRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(0.5f),
+            modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .clickable {
+                    if (currentFilteredSet.contains(category1)) removeFilter(category1) else addFilter(category1)
+                },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
         ) {
@@ -477,7 +481,11 @@ fun FilterRow(
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    if (currentFilteredSet.contains(category2)) removeFilter(category2) else addFilter(category2)
+                },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
         ) {
