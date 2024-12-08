@@ -209,7 +209,6 @@ fun OptionList(
                 .background(color = MaterialTheme.colorScheme.surface)
                 .onGloballyPositioned {
                     buttonOffset = Offset(it.positionInParent().x, it.positionInParent().y)
-                    println(buttonOffset)
                     showTutorialDialog = SharedPreferencesUtil.isFirstTime(context)
                 }
         ) {
@@ -305,8 +304,6 @@ fun TutorialDialog(
                         dpOffset = with(density) {
                             position.toDp()
                         }
-                        println(buttonOffset)
-                        println(it.size)
                     },
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -662,8 +659,7 @@ fun Option(
                     )
                 }
 
-                Row(
-                ) {
+                Row {
                     Text(
                         fontFamily = FontFamily.Serif,
                         fontSize = 14.sp,

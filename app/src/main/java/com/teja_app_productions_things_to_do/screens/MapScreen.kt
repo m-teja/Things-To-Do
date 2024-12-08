@@ -36,6 +36,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -55,6 +56,7 @@ import com.teja_app_productions_things_to_do.model.MapViewModelFactory
 import com.teja_app_productions_things_to_do.model.Search
 import com.teja_app_productions_things_to_do.ui.AppTheme
 import com.teja_app_productions_things_to_do.utils.SharedPreferencesUtil
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 @Preview
@@ -71,37 +73,40 @@ fun MapScreen(
         factory = MapViewModelFactory(Search())
     )
 ) {
-    val userLocation by mapViewModel.userLocation.collectAsState()
-    val placesOfInterest by mapViewModel.placesOfInterest.collectAsState()
-
-    Map(userLocation, placesOfInterest)
+    Map(
+        userLocationState = mapViewModel.userLocation,
+        placesOfInterestState = mapViewModel.placesOfInterest
+    )
 }
 
 @Composable
 fun Map(
-    userLocation: LatLng,
-    placesOfInterest: List<Place>,
+    userLocationState: StateFlow<LatLng>,
+    placesOfInterestState: StateFlow<List<Place>>,
 ) {
+    val userLocation = userLocationState.collectAsStateWithLifecycle().value
+    val placesOfInterest = placesOfInterestState.collectAsStateWithLifecycle().value
+
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
     var hasSetInitialLocation by remember { mutableStateOf(false) }
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(userLocation, 12f)
     }
-    val coroutineScope = rememberCoroutineScope()
     var cameraBounds by rememberSaveable {
         mutableStateOf(LatLngBounds(LatLng(0.0, 0.0), LatLng(0.0, 0.0)))
     }
 
-    val colorScheme = if (SharedPreferencesUtil.isDarkModeMap(context)) {
-        ComposeMapColorScheme.DARK
-    } else {
-        ComposeMapColorScheme.LIGHT
-    }
 
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
-        mapColorScheme = colorScheme,
+        mapColorScheme = if (SharedPreferencesUtil.isDarkModeMap(context)) {
+            ComposeMapColorScheme.DARK
+        } else {
+            ComposeMapColorScheme.LIGHT
+        },
         properties = MapProperties(isMyLocationEnabled = isLocationGranted(context)),
         onMapLoaded = {
             if (!isLocationGranted(context)) {

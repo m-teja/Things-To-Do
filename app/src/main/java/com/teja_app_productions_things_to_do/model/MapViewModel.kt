@@ -45,14 +45,12 @@ class MapViewModel(search: Search) : ViewModel() {
                     searchQuery.value.radius.toDouble()
                 )
             ).build()
-        println(searchByTextRequest)
 
         // Call PlacesClient.searchByText() to perform the search.
         // Define a response handler to process the returned List of Place objects.
         placesClient.searchByText(searchByTextRequest)
             .addOnSuccessListener { response ->
                 _placesOfInterest.value = response.places
-                println(response)
             }
     }
 }

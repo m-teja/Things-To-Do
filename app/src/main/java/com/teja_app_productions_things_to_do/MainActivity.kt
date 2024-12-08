@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
@@ -21,7 +23,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -99,6 +104,10 @@ class MainActivity : ComponentActivity() {
                 NavHost(
                     navController = navController,
                     startDestination = HomeRoute,
+                    enterTransition = { fadeIn() },
+                    exitTransition = { fadeOut() },
+                    popEnterTransition = { fadeIn() },
+                    popExitTransition = { fadeOut() },
                     modifier = Modifier
                         .consumeWindowInsets(padding)
                         .padding(padding)
@@ -164,6 +173,8 @@ class MainActivity : ComponentActivity() {
             )
         )
 
+        var debounceState by rememberSaveable { mutableStateOf(System.currentTimeMillis()) }
+
         NavigationBar {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentDestination = navBackStackEntry?.destination
@@ -178,12 +189,19 @@ class MainActivity : ComponentActivity() {
                     label = { Text(screenLevelRoute.name) },
                     selected = currentDestination?.hierarchy?.any { it.hasRoute(screenLevelRoute.route::class) } == true,
                     onClick = {
-                        navController.navigate(screenLevelRoute.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
+
+                        if (
+                            System.currentTimeMillis() - debounceState > 500L &&
+                            currentDestination?.hierarchy?.any { it.hasRoute(screenLevelRoute.route::class) } == false
+                        ) {
+                            debounceState = System.currentTimeMillis()
+                            navController.navigate(screenLevelRoute.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-                            launchSingleTop = true
-                            restoreState = true
                         }
                     }
                 )
