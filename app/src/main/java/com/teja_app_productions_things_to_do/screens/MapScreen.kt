@@ -3,6 +3,7 @@ package com.teja_app_productions_things_to_do.screens
 import android.content.Intent
 import android.location.Location
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -75,7 +75,8 @@ fun MapScreen(
 ) {
     Map(
         userLocationState = mapViewModel.userLocation,
-        placesOfInterestState = mapViewModel.placesOfInterest
+        placesOfInterestState = mapViewModel.placesOfInterest,
+        searchQuery = mapViewModel.searchQuery.value.query
     )
 }
 
@@ -83,6 +84,7 @@ fun MapScreen(
 fun Map(
     userLocationState: StateFlow<LatLng>,
     placesOfInterestState: StateFlow<List<Place>>,
+    searchQuery: String
 ) {
     val userLocation = userLocationState.collectAsStateWithLifecycle().value
     val placesOfInterest = placesOfInterestState.collectAsStateWithLifecycle().value
@@ -109,6 +111,10 @@ fun Map(
         },
         properties = MapProperties(isMyLocationEnabled = isLocationGranted(context)),
         onMapLoaded = {
+            if (placesOfInterest.isEmpty() && searchQuery.isNotEmpty()) {
+                Toast.makeText(context, "No results found, try a different search query", Toast.LENGTH_LONG).show()
+            }
+
             if (!isLocationGranted(context)) {
                 coroutineScope.launch {
                     cameraPositionState.position =
@@ -116,6 +122,7 @@ fun Map(
                 }
             } else if (placesOfInterest.isNotEmpty() && !hasSetInitialLocation) {
                 hasSetInitialLocation = true
+
                 coroutineScope.launch {
                     val cameraUpdate = CameraUpdateFactory.newLatLngBounds(cameraBounds, 100)
                     cameraPositionState.animate(cameraUpdate)
@@ -215,6 +222,7 @@ fun Map(
 
                 latLngBuilder.include(location)
             }
+
         }
         cameraBounds = latLngBuilder.build()
     }

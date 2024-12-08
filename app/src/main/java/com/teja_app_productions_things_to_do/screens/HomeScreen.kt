@@ -104,7 +104,8 @@ fun HomeScreen(
         removeItem = homeViewModel::removeItem,
         addItem = homeViewModel::addItem,
         updateCurrentFilter = homeViewModel::updateCurrentFilter,
-        updateCurrentSearch = homeViewModel::updateCurrentSearch
+        updateCurrentSearch = homeViewModel::updateCurrentSearch,
+        currentSearchQuery = homeViewModel.currentSearchQuery.value
     )
 }
 
@@ -115,7 +116,8 @@ fun OptionList(
     removeItem: (Context, OptionItem) -> Unit,
     addItem: (Context, OptionItem) -> Unit,
     updateCurrentFilter: (Context, Set<String>) -> Unit,
-    updateCurrentSearch: (Context, String) -> Unit
+    updateCurrentSearch: (Context, String) -> Unit,
+    currentSearchQuery: String
 ) {
     val context = LocalContext.current
     val listState = rememberLazyListState()
@@ -194,6 +196,15 @@ fun OptionList(
                                 }
                             }
                         }
+                    )
+                }
+            }
+
+            if (currentSearchQuery.isNotEmpty()) {
+                item(key = "search query item") {
+                    SearchOption(
+                        searchQuery = currentSearchQuery,
+                        onNavigateToMapScreen = onNavigateToMapScreen
                     )
                 }
             }
@@ -675,6 +686,62 @@ fun Option(
             }
         }
 
+    }
+}
+
+@Composable
+private fun SearchOption(
+    searchQuery: String,
+    onNavigateToMapScreen: (String, Int) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
+        onClick = {
+            onNavigateToMapScreen(searchQuery, 10)
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Absolute.SpaceBetween
+            ) {
+                Text(
+                    fontFamily = FontFamily.Serif,
+                    text = "\"" + searchQuery + "\"",
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                val message = "Search for \"$searchQuery\""
+
+                Text(
+                    fontFamily = FontFamily.Serif,
+                    fontSize = 14.sp,
+                    text = message
+                )
+
+                Icon(
+                    modifier = Modifier.padding(start = 4.dp),
+                    imageVector = ImageVector.vectorResource(R.drawable.link_search_icon),
+                    contentDescription = "link search"
+                )
+            }
+        }
     }
 }
 
