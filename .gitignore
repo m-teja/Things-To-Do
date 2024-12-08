@@ -15,3 +15,5 @@
 .cxx
 local.properties
 secrets.properties
+/app/debug
+/app/release
