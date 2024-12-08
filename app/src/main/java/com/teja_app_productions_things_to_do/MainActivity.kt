@@ -40,6 +40,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.location.LocationServices
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
@@ -58,6 +59,9 @@ import com.teja_app_productions_things_to_do.screens.UserLocationRequest
 import com.teja_app_productions_things_to_do.screens.isLocationGranted
 import com.teja_app_productions_things_to_do.ui.AppTheme
 import com.teja_app_productions_things_to_do.utils.ManifestUtil
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -70,6 +74,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 initPlaces()
+                initAds()
                 MainScreen()
             }
         }
@@ -232,6 +237,14 @@ class MainActivity : ComponentActivity() {
         if (!Places.isInitialized() && apiKey != null) {
             Places.initializeWithNewPlacesApiEnabled(applicationContext, apiKey)
             placesClient = Places.createClient(this)
+        }
+    }
+
+    private fun initAds() {
+        val backgroundScope = CoroutineScope(Dispatchers.IO)
+        backgroundScope.launch {
+            // Initialize the Google Mobile Ads SDK on a background thread.
+            MobileAds.initialize(this@MainActivity) {}
         }
     }
 }

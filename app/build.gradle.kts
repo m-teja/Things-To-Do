@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
+    implementation("com.google.android.gms:play-services-ads:23.6.0")
     implementation(libs.androidx.navigation.compose)
     implementation(libs.gson)
     implementation(libs.kotlinx.serialization.json)
