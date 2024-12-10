@@ -24,27 +24,24 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
-import com.teja_app_productions_things_to_do.R
 import com.teja_app_productions_things_to_do.ui.AppTheme
+import com.teja_app_productions_things_to_do.utils.AdsUtil.SETTINGS_TEST_AD_UNIT_ID
+import com.teja_app_productions_things_to_do.utils.AdsUtil.TEST_DEVICE_HASHED_ID
 import com.teja_app_productions_things_to_do.utils.SharedPreferencesUtil
 import com.teja_app_productions_things_to_do.utils.SharedPreferencesUtil.DELETE_KEY
 
-private const val AD_UNIT_ID = "ca-app-pub-3940256099942544/9214589741"
-const val TEST_DEVICE_HASHED_ID = "37A93361FA4402FA38C27C8FDA9C5337"
 
 @Preview
 @Composable
 fun SettingsScreenPreview() {
     AppTheme {
         SettingsScreen(
-            updateCurrentOptionItemList = {},
+            updateCurrentFilter = { _, _ -> },
             onNavigateToHomeScreen = {}
         )
     }
@@ -52,16 +49,12 @@ fun SettingsScreenPreview() {
 
 @Composable
 fun SettingsScreen(
-    updateCurrentOptionItemList: (Context) -> Unit,
+    updateCurrentFilter: (Context, Set<String>) -> Unit,
     onNavigateToHomeScreen: () -> Unit
 ) {
     val context = LocalContext.current
 
     var isDarkModeChecked by remember { mutableStateOf(SharedPreferencesUtil.isDarkModeMap(context)) }
-
-    MobileAds.setRequestConfiguration(
-        RequestConfiguration.Builder().setTestDeviceIds(listOf(TEST_DEVICE_HASHED_ID)).build()
-    )
 
     Column (
         modifier = Modifier
@@ -111,7 +104,7 @@ fun SettingsScreen(
                         apply()
                     }
 
-                    updateCurrentOptionItemList(context)
+                    updateCurrentFilter(context, emptySet())
 
                     Toast.makeText(context, "Activity list has been reset", Toast.LENGTH_LONG).show()
                 }
@@ -127,7 +120,7 @@ fun SettingsScreen(
 
                 adView.apply {
                     setAdSize(AdSize.BANNER)
-                    adUnitId = AD_UNIT_ID
+                    adUnitId = SETTINGS_TEST_AD_UNIT_ID
                     loadAd(AdRequest.Builder().build())
                 }
 

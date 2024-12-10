@@ -614,7 +614,7 @@ fun Option(
             CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.5f))
         } else CardDefaults.cardColors(),
         onClick = {
-            onNavigateToMapScreen(optionItem.activity, 10)
+            onNavigateToMapScreen(optionItem.activity, SharedPreferencesUtil.DEFAULT_RADIUS)
         }
     ) {
         Column(
@@ -708,7 +708,7 @@ private fun SearchOption(
             .padding(vertical = 5.dp),
         elevation = CardDefaults.cardElevation(4.dp),
         onClick = {
-            onNavigateToMapScreen(searchQuery, 10)
+            onNavigateToMapScreen(searchQuery, SharedPreferencesUtil.DEFAULT_RADIUS)
         }
     ) {
         Column(

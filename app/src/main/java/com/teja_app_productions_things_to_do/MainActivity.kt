@@ -41,6 +41,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.gms.location.LocationServices
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
@@ -58,6 +59,8 @@ import com.teja_app_productions_things_to_do.screens.SettingsScreen
 import com.teja_app_productions_things_to_do.screens.UserLocationRequest
 import com.teja_app_productions_things_to_do.screens.isLocationGranted
 import com.teja_app_productions_things_to_do.ui.AppTheme
+import com.teja_app_productions_things_to_do.utils.AdsUtil
+import com.teja_app_productions_things_to_do.utils.AdsUtil.TEST_DEVICE_HASHED_ID
 import com.teja_app_productions_things_to_do.utils.ManifestUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -145,7 +148,7 @@ class MainActivity : ComponentActivity() {
                     }
                     composable<SettingsRoute> {
                         SettingsScreen(
-                            homeViewModel::updateCurrentOptionItemList,
+                            homeViewModel::updateCurrentFilter,
                             onNavigateToHomeScreen = {
                                 navController.navigate(route = HomeRoute) {
                                     popUpTo(navController.graph.findStartDestination().id) {
@@ -246,5 +249,11 @@ class MainActivity : ComponentActivity() {
             // Initialize the Google Mobile Ads SDK on a background thread.
             MobileAds.initialize(this@MainActivity) {}
         }
+
+        MobileAds.setRequestConfiguration(
+            RequestConfiguration.Builder().setTestDeviceIds(listOf(TEST_DEVICE_HASHED_ID)).build()
+        )
+
+        AdsUtil.loadMapInterstitial(this)
     }
 }

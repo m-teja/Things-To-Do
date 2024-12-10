@@ -1,5 +1,6 @@
 package com.teja_app_productions_things_to_do.screens
 
+import android.app.Activity
 import android.content.Intent
 import android.location.Location
 import android.net.Uri
@@ -20,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +57,7 @@ import com.teja_app_productions_things_to_do.model.MapViewModel
 import com.teja_app_productions_things_to_do.model.MapViewModelFactory
 import com.teja_app_productions_things_to_do.model.Search
 import com.teja_app_productions_things_to_do.ui.AppTheme
+import com.teja_app_productions_things_to_do.utils.AdsUtil
 import com.teja_app_productions_things_to_do.utils.SharedPreferencesUtil
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -73,11 +76,24 @@ fun MapScreen(
         factory = MapViewModelFactory(Search())
     )
 ) {
+
+    LoadInterstitialAdIfApplicable()
     Map(
         userLocationState = mapViewModel.userLocation,
         placesOfInterestState = mapViewModel.placesOfInterest,
-        searchQuery = mapViewModel.searchQuery.value.query
+        searchQuery = mapViewModel.searchQuery.collectAsState().value.query
     )
+}
+
+@Composable
+fun LoadInterstitialAdIfApplicable() {
+    val context = LocalContext.current
+    if (SharedPreferencesUtil.getNumMapVisit(context) == SharedPreferencesUtil.MAP_VISIT_COUNT_BEFORE_ADS) {
+        AdsUtil.showMapInterstitial(context as Activity, onAdDismissed = {})
+        SharedPreferencesUtil.resetNumMapVisit(context)
+    } else {
+        SharedPreferencesUtil.incrementNumMapVisit(context)
+    }
 }
 
 @Composable
