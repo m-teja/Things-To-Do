@@ -119,6 +119,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier
                         .padding(padding)
                 ) {
+                    homeViewModel.updateCurrentSearch(context, "")
                     composable<HomeRoute> {
                         HomeScreen(
                             homeViewModel = homeViewModel,
