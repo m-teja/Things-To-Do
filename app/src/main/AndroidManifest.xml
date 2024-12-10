@@ -15,7 +15,7 @@
         <activity
             android:name="com.teja_app_productions_things_to_do.MainActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustNothing"
+            android:windowSoftInputMode="adjustUnspecified"
             android:screenOrientation="portrait"
             android:label="@string/app_name">
             <intent-filter>

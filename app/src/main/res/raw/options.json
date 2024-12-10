@@ -173,6 +173,7 @@
         { "id": "mobile_food_truck", "name": "Mobile food truck" },
         { "id": "pop_up_restaurant", "name": "Pop-up restaurant" },
         { "id": "private_dining_club", "name": "Private dining club" },
+        { "id": "restaurant", "name": "Restaurant" },
         { "id": "spa", "name": "Spa" },
         { "id": "sushi_bar", "name": "Sushi bar" },
         { "id": "tea_house", "name": "Tea house" },

@@ -117,9 +117,7 @@ class MainActivity : ComponentActivity() {
                     popEnterTransition = { fadeIn() },
                     popExitTransition = { fadeOut() },
                     modifier = Modifier
-                        .consumeWindowInsets(padding)
                         .padding(padding)
-                        .imePadding(),
                 ) {
                     composable<HomeRoute> {
                         HomeScreen(
