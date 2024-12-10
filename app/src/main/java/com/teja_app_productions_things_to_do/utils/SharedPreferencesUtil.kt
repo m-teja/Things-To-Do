@@ -55,7 +55,6 @@ object SharedPreferencesUtil {
         val sharedPreferences =
             androidx.preference.PreferenceManager.getDefaultSharedPreferences(context) ?: return
 
-        println(sharedPreferences.getInt(NUM_MAP_VISIT, MAP_VISIT_COUNT_BEFORE_ADS))
         with(sharedPreferences.edit()) {
             putInt(NUM_MAP_VISIT, sharedPreferences.getInt(NUM_MAP_VISIT, MAP_VISIT_COUNT_BEFORE_ADS) + 1)
             apply()
@@ -66,7 +65,6 @@ object SharedPreferencesUtil {
         val sharedPreferences =
             androidx.preference.PreferenceManager.getDefaultSharedPreferences(context) ?: return
 
-        println(sharedPreferences.getInt(NUM_MAP_VISIT, MAP_VISIT_COUNT_BEFORE_ADS))
         with(sharedPreferences.edit()) {
             putInt(NUM_MAP_VISIT, 0)
             apply()
