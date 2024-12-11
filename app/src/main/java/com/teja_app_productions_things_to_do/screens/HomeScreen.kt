@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -54,19 +53,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -135,7 +133,7 @@ fun OptionList(
 
     var scrollToIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     var showFilterDialog by rememberSaveable { mutableStateOf(false) }
-    var showTutorialDialog by rememberSaveable { mutableStateOf(false) }
+    var showTutorialDialog by remember { mutableStateOf(SharedPreferencesUtil.isFirstTime(context)) }
     var showSearchBar by rememberSaveable { mutableStateOf(currentSearchQuery.isNotEmpty()) }
 
     if (showFilterDialog) {
@@ -225,21 +223,18 @@ fun OptionList(
             hostState = undoSnackBarHostState,
         )
 
-        var buttonOffset: Offset by remember { mutableStateOf(Offset.Zero) }
         Column(
             modifier = Modifier
                 .background(color = MaterialTheme.colorScheme.surface)
-                .onGloballyPositioned {
-                    buttonOffset = Offset(it.positionInParent().x, it.positionInParent().y)
-                    showTutorialDialog = SharedPreferencesUtil.isFirstTime(context)
-                }
         ) {
 
             if (showTutorialDialog) {
-                TutorialDialog(buttonOffset, onFinishTutorial = {
-                    showTutorialDialog = false
-                    SharedPreferencesUtil.setFirstTime(context, false)
-                })
+                TutorialDialog(
+                    onFinishTutorial = {
+                        showTutorialDialog = false
+                        SharedPreferencesUtil.setFirstTime(context, false)
+                    }
+                )
             }
 
             if (showSearchBar) {
@@ -260,15 +255,20 @@ fun OptionList(
                     showFilterDialog = true
                 })
 
-                RandomButton(onClick = {
-                    coroutineScope.launch {
-                        if (optionItems.isNotEmpty()) {
-                            val randIndex = floor(Math.random() * optionItems.size).toInt()
-                            listState.animateScrollToItem(index = randIndex, scrollOffset = -400)
-                            scrollToIndex = randIndex
+                RandomButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            if (optionItems.isNotEmpty()) {
+                                val randIndex = floor(Math.random() * optionItems.size).toInt()
+                                listState.animateScrollToItem(
+                                    index = randIndex,
+                                    scrollOffset = -400
+                                )
+                                scrollToIndex = randIndex
+                            }
                         }
                     }
-                })
+                )
 
                 SearchButton(onClick = {
                     showSearchBar = true
@@ -294,14 +294,8 @@ fun FilterButton(onClick: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TutorialDialog(
-    buttonOffset: Offset,
     onFinishTutorial: () -> Unit
 ) {
-    val density = LocalDensity.current
-    var dpOffset by remember {
-        mutableStateOf((-1000).dp) // outside
-    }
-
     BasicAlertDialog(
         modifier = Modifier
             .clickable {
@@ -313,54 +307,29 @@ fun TutorialDialog(
     ) {
         (LocalView.current.parent as DialogWindowProvider).window.setDimAmount(0.5f)
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(10.dp)
-                .offset(x = 0.dp, y = dpOffset),
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
+            elevation = CardDefaults.cardElevation(4.dp),
         ) {
             Column(
-                modifier = Modifier
-                    .wrapContentSize()
-                    .onGloballyPositioned {
-                        val position = buttonOffset.y - it.size.height
-                        dpOffset = with(density) {
-                            position.toDp()
-                        }
-                    },
-                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
-                    elevation = CardDefaults.cardElevation(4.dp),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Text(
-                            text = "Tap \"Randomize!\" to randomly select an activity",
-                            fontSize = 16.sp
-                        )
+                Text(
+                    text = buildAnnotatedString {
+                        append("Tap ")
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("\"Randomize!\"")
+                        }
+                        append(" to randomly select an activity")
+                    },
 
-                        Text(
-                            text = "Then tap on any activity to display places near you",
-                            fontSize = 16.sp
-                        )
-                    }
-                }
+                    fontSize = 16.sp
+                )
 
-                Box(
-                    modifier = Modifier
-                        .size(15.dp) // Adjust arrow size
-                        .clip(
-                            GenericShape { size, _ ->
-                                moveTo(0f, 0f) // Top left
-                                lineTo(size.width / 2f, size.height) // Bottom center
-                                lineTo(size.width, 0f) // Top right
-                            }
-                        )
-                        .background(color = MaterialTheme.colorScheme.primary)
+                Text(
+                    text = "Then tap on any activity to display places near you",
+                    fontSize = 16.sp
                 )
             }
         }
@@ -520,11 +489,17 @@ fun FilterRow(
 }
 
 @Composable
-fun RandomButton(onClick: () -> Unit) {
+fun RandomButton(
+    onClick: () -> Unit,
+) {
     Button(
         onClick = onClick
     ) {
-        Text(text = "Randomize!")
+        Text(
+            text = "Randomize!",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
