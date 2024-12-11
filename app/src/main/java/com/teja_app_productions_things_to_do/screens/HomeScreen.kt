@@ -59,6 +59,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -248,7 +250,10 @@ fun OptionList(
 
             Row(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .semantics {
+                        this.contentDescription = "Activity list navigation"
+                    },
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 FilterButton(onClick = {
@@ -281,12 +286,16 @@ fun OptionList(
 @Composable
 fun FilterButton(onClick: () -> Unit) {
     IconButton(
+        modifier = Modifier
+            .semantics {
+                this.contentDescription = "filter activity list by category"
+            },
         onClick = onClick
     ) {
         Icon(
             tint = Color.White,
             imageVector = ImageVector.vectorResource(R.drawable.filter_icon),
-            contentDescription = "filter"
+            contentDescription = "filter button",
         )
     }
 }
@@ -309,7 +318,6 @@ fun TutorialDialog(
 
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
-            elevation = CardDefaults.cardElevation(4.dp),
         ) {
             Column(
                 modifier = Modifier.padding(12.dp),
@@ -456,6 +464,9 @@ fun FilterRow(
                 fontSize = 14.sp
             )
             Checkbox(
+                modifier = Modifier.semantics {
+                    this.contentDescription = "Checkbox for $category1"
+                },
                 checked = !currentFilteredSet.contains(category1),
                 onCheckedChange = {
                     if (it) removeFilter(category1) else addFilter(category1)
@@ -479,6 +490,9 @@ fun FilterRow(
                 fontSize = 14.sp
             )
             Checkbox(
+                modifier = Modifier.semantics {
+                    this.contentDescription = "Checkbox for $category2"
+                },
                 checked = !currentFilteredSet.contains(category2),
                 onCheckedChange = {
                     if (it) removeFilter(category2) else addFilter(category2)
@@ -493,7 +507,11 @@ fun RandomButton(
     onClick: () -> Unit,
 ) {
     Button(
-        onClick = onClick
+        modifier = Modifier
+            .semantics {
+                this.contentDescription = "Randomly select an activity from the list"
+            },
+        onClick = onClick,
     ) {
         Text(
             text = "Randomize!",
@@ -506,6 +524,10 @@ fun RandomButton(
 @Composable
 fun SearchButton(onClick: () -> Unit) {
     IconButton(
+        modifier = Modifier
+            .semantics {
+                this.contentDescription = "Search for a specific activity"
+            },
         onClick = onClick
     ) {
         Icon(
@@ -529,6 +551,9 @@ fun SearchActivityBar(
     val focusRequester = remember { FocusRequester() }
 
     Row(
+        modifier = Modifier.semantics {
+            this.contentDescription = "Search for an activity"
+        },
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
@@ -600,10 +625,8 @@ fun Option(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 5.dp),
-        elevation = CardDefaults.cardElevation(4.dp),
-
         colors = if (currentlyHighlighted) {
-            CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.5f))
+            CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.3f))
         } else CardDefaults.cardColors(),
         onClick = {
             onNavigateToMapScreen(optionItem.activity, SharedPreferencesUtil.DEFAULT_RADIUS)
@@ -666,7 +689,7 @@ fun Option(
                             .background(color = MaterialTheme.colorScheme.errorContainer)
                             .padding(3.dp),
                         imageVector = ImageVector.vectorResource(R.drawable.delete_icon),
-                        contentDescription = "delete"
+                        contentDescription = "delete" + optionItem.activity
                     )
                 }
 
@@ -698,7 +721,6 @@ private fun SearchOption(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 5.dp),
-        elevation = CardDefaults.cardElevation(4.dp),
         onClick = {
             onNavigateToMapScreen(searchQuery, SharedPreferencesUtil.DEFAULT_RADIUS)
         }
