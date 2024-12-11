@@ -6,9 +6,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -49,7 +52,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
@@ -59,11 +61,12 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -93,7 +96,8 @@ fun HomeScreenPreview() {
 @Composable
 fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
-    onNavigateToMapScreen: (String, Int) -> Unit
+    onNavigateToMapScreen: (String, Int) -> Unit,
+    paddingValues: PaddingValues = PaddingValues(0.dp)
 ) {
     GetOptionItemListFromJson(LocalContext.current, homeViewModel::setFullOptionItemList)
     homeViewModel.updateCurrentOptionItemList(LocalContext.current)
@@ -107,7 +111,8 @@ fun HomeScreen(
         addItem = homeViewModel::addItem,
         updateCurrentFilter = homeViewModel::updateCurrentFilter,
         updateCurrentSearch = homeViewModel::updateCurrentSearch,
-        currentSearchQuery = homeViewModel.currentSearchQuery.value
+        currentSearchQuery = homeViewModel.currentSearchQuery.value,
+        paddingValues = paddingValues
     )
 }
 
@@ -119,19 +124,19 @@ fun OptionList(
     addItem: (Context, OptionItem) -> Unit,
     updateCurrentFilter: (Context, Set<String>) -> Unit,
     updateCurrentSearch: (Context, String) -> Unit,
-    currentSearchQuery: String
+    currentSearchQuery: String,
+    paddingValues: PaddingValues
 ) {
     val context = LocalContext.current
-    val focusManager = LocalFocusManager.current
-    val focusRequester = remember { FocusRequester() }
 
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val undoSnackBarHostState = remember { SnackbarHostState() }
 
     var scrollToIndex by rememberSaveable { mutableStateOf<Int?>(null) }
-    var showFilterDialog by remember { mutableStateOf(false) }
-    var showTutorialDialog by remember { mutableStateOf(false) }
+    var showFilterDialog by rememberSaveable { mutableStateOf(false) }
+    var showTutorialDialog by rememberSaveable { mutableStateOf(false) }
+    var showSearchBar by rememberSaveable { mutableStateOf(currentSearchQuery.isNotEmpty()) }
 
     if (showFilterDialog) {
         FilterDialog(onClose = {
@@ -140,133 +145,137 @@ fun OptionList(
         })
     }
 
-    Column {
-        SearchActivityBar(updateCurrentSearch, focusRequester, focusManager)
-
-        Column(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(10.dp)
+            .consumeWindowInsets(paddingValues)
+            .imePadding(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 10.dp, vertical = 10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+                .weight(1f, fill = false)
+                .padding(bottom = 6.dp),
+            state = listState,
         ) {
+            itemsIndexed(
+                optionItems,
+                key = { _, optionItem ->
+                    optionItem.activity
+                }
+            ) { index, optionItem ->
 
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f, fill = false)
-                    .padding(bottom = 6.dp),
-                state = listState,
-            ) {
-                itemsIndexed(
-                    optionItems,
-                    key = { _, optionItem ->
-                        optionItem.activity
+                Column(
+                    modifier = Modifier.animateItem(),
+                    verticalArrangement = Arrangement.spacedBy(15.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    val isStartOfCategory =
+                        (index == 0 || optionItems[index - 1].category != optionItem.category)
+                    if (isStartOfCategory) {
+                        Text(
+                            modifier = Modifier.padding(top = 10.dp),
+                            fontSize = 20.sp,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            text = optionItem.category.uppercase()
+                        )
+                        HorizontalDivider(thickness = 2.dp)
                     }
-                ) { index, optionItem ->
 
-                    Column(
-                        modifier = Modifier.animateItem(),
-                        verticalArrangement = Arrangement.spacedBy(15.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        val isStartOfCategory =
-                            (index == 0 || optionItems[index - 1].category != optionItem.category)
-                        if (isStartOfCategory) {
-                            Text(
-                                modifier = Modifier.padding(top = 10.dp),
-                                fontSize = 20.sp,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                text = optionItem.category.uppercase()
-                            )
-                            HorizontalDivider(thickness = 2.dp)
-                        }
+                    Option(
+                        optionItem = optionItem,
+                        isHighlightedAnimation = (index == scrollToIndex),
+                        onNavigateToMapScreen = onNavigateToMapScreen,
+                        resetHighlightIndex = {
+                            scrollToIndex = null
+                        },
+                        onDelete = {
+                            removeItem(context, optionItem)
+                            scrollToIndex = null
+                            coroutineScope.launch {
+                                undoSnackBarHostState.currentSnackbarData?.dismiss()
+                                val result = undoSnackBarHostState.showSnackbar(
+                                    message = "Deleted " + optionItem.activity,
+                                    actionLabel = "Undo",
+                                    duration = SnackbarDuration.Short
+                                )
 
-                        Option(
-                            optionItem = optionItem,
-                            isHighlightedAnimation = (index == scrollToIndex),
-                            onNavigateToMapScreen = onNavigateToMapScreen,
-                            resetHighlightIndex = {
-                                scrollToIndex = null
-                            },
-                            onDelete = {
-                                removeItem(context, optionItem)
-                                scrollToIndex = null
-                                coroutineScope.launch {
-                                    undoSnackBarHostState.currentSnackbarData?.dismiss()
-                                    val result = undoSnackBarHostState.showSnackbar(
-                                        message = "Deleted " + optionItem.activity,
-                                        actionLabel = "Undo",
-                                        duration = SnackbarDuration.Short
-                                    )
-
-                                    if (result == SnackbarResult.ActionPerformed) {
-                                        addItem(context, optionItem)
-                                    }
+                                if (result == SnackbarResult.ActionPerformed) {
+                                    addItem(context, optionItem)
                                 }
                             }
-                        )
-                    }
-                }
-
-                if (currentSearchQuery.isNotEmpty()) {
-                    item(key = "search query item") {
-                        SearchOption(
-                            searchQuery = currentSearchQuery,
-                            onNavigateToMapScreen = onNavigateToMapScreen
-                        )
-                    }
+                        }
+                    )
                 }
             }
 
-            SnackbarHost(
-                hostState = undoSnackBarHostState,
-            )
-
-            var buttonOffset: Offset by remember { mutableStateOf(Offset.Zero) }
-            Column(
-                modifier = Modifier
-                    .background(color = MaterialTheme.colorScheme.surface)
-                    .onGloballyPositioned {
-                        buttonOffset = Offset(it.positionInParent().x, it.positionInParent().y)
-                        showTutorialDialog = SharedPreferencesUtil.isFirstTime(context)
-                    }
-            ) {
-
-                if (showTutorialDialog) {
-                    TutorialDialog(buttonOffset, onFinishTutorial = {
-                        showTutorialDialog = false
-                        SharedPreferencesUtil.setFirstTime(context, false)
-                    })
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                ) {
-                    FilterButton(onClick = {
-                        showFilterDialog = true
-                    })
-
-                    RandomButton(onClick = {
-                        coroutineScope.launch {
-                            if (optionItems.isNotEmpty()) {
-                                val randIndex = floor(Math.random() * optionItems.size).toInt()
-                                listState.animateScrollToItem(index = randIndex, scrollOffset = -400)
-                                scrollToIndex = randIndex
-                            }
-                        }
-                    })
-
-                    SearchButton(onClick = {
-                        focusManager.clearFocus()
-                        focusRequester.requestFocus()
-                    })
+            if (currentSearchQuery.isNotEmpty()) {
+                item(key = "search query item") {
+                    SearchOption(
+                        searchQuery = currentSearchQuery,
+                        onNavigateToMapScreen = onNavigateToMapScreen
+                    )
                 }
             }
         }
-    }
 
+        SnackbarHost(
+            hostState = undoSnackBarHostState,
+        )
+
+        var buttonOffset: Offset by remember { mutableStateOf(Offset.Zero) }
+        Column(
+            modifier = Modifier
+                .background(color = MaterialTheme.colorScheme.surface)
+                .onGloballyPositioned {
+                    buttonOffset = Offset(it.positionInParent().x, it.positionInParent().y)
+                    showTutorialDialog = SharedPreferencesUtil.isFirstTime(context)
+                }
+        ) {
+
+            if (showTutorialDialog) {
+                TutorialDialog(buttonOffset, onFinishTutorial = {
+                    showTutorialDialog = false
+                    SharedPreferencesUtil.setFirstTime(context, false)
+                })
+            }
+
+            if (showSearchBar) {
+                SearchActivityBar(
+                    updateCurrentSearch = updateCurrentSearch,
+                    currentSearchQuery,
+                    onClose = {
+                        showSearchBar = false
+                    })
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+            ) {
+                FilterButton(onClick = {
+                    showFilterDialog = true
+                })
+
+                RandomButton(onClick = {
+                    coroutineScope.launch {
+                        if (optionItems.isNotEmpty()) {
+                            val randIndex = floor(Math.random() * optionItems.size).toInt()
+                            listState.animateScrollToItem(index = randIndex, scrollOffset = -400)
+                            scrollToIndex = randIndex
+                        }
+                    }
+                })
+
+                SearchButton(onClick = {
+                    showSearchBar = true
+                })
+            }
+        }
+    }
 }
 
 @Composable
@@ -466,7 +475,9 @@ fun FilterRow(
             modifier = Modifier
                 .fillMaxWidth(0.5f)
                 .clickable {
-                    if (currentFilteredSet.contains(category1)) removeFilter(category1) else addFilter(category1)
+                    if (currentFilteredSet.contains(category1)) removeFilter(category1) else addFilter(
+                        category1
+                    )
                 },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
@@ -487,7 +498,9 @@ fun FilterRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    if (currentFilteredSet.contains(category2)) removeFilter(category2) else addFilter(category2)
+                    if (currentFilteredSet.contains(category2)) removeFilter(category2) else addFilter(
+                        category2
+                    )
                 },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
@@ -531,11 +544,14 @@ fun SearchButton(onClick: () -> Unit) {
 @Composable
 fun SearchActivityBar(
     updateCurrentSearch: (Context, String) -> Unit,
-    focusRequester: FocusRequester,
-    focusManager: FocusManager
+    currentSearchQuery: String,
+    onClose: () -> Unit
 ) {
     val context = LocalContext.current
-    var text by rememberSaveable { mutableStateOf("") }
+    val windowInfo = LocalWindowInfo.current
+    var textFieldValue by rememberSaveable { mutableStateOf(currentSearchQuery) }
+
+    val focusRequester = remember { FocusRequester() }
 
     Row(
         verticalAlignment = Alignment.CenterVertically
@@ -551,25 +567,34 @@ fun SearchActivityBar(
             placeholder = {
                 Text(text = "Search for an activity")
             },
-            value = text,
+            value = textFieldValue,
             onValueChange = {
-                text = it
-                updateCurrentSearch(context, text)
+                textFieldValue = it
+                updateCurrentSearch(context, textFieldValue)
             },
         )
 
-        if (text.isNotEmpty()) {
+        if (textFieldValue.isNotEmpty()) {
             TextButton(
                 onClick = {
+                    textFieldValue = ""
                     updateCurrentSearch(context, "")
-                    text = ""
-                    focusManager.clearFocus()
+                    onClose()
                 }
             ) {
                 Text("Cancel")
             }
         }
     }
+
+    LaunchedEffect(windowInfo) {
+        snapshotFlow { windowInfo.isWindowFocused }.collect { isWindowFocused ->
+            if (isWindowFocused) {
+                focusRequester.requestFocus()
+            }
+        }
+    }
+
 }
 
 @Composable

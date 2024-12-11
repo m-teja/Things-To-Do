@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -68,11 +69,13 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var placesClient: PlacesClient
+    private var placesClient: PlacesClient? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
             AppTheme {
@@ -129,7 +132,9 @@ class MainActivity : ComponentActivity() {
                                     )
                                 ) {
                                     mapViewModel.updateSearchQuery(Search(query, radius))
-                                    mapViewModel.updatePlacesOfInterest(placesClient)
+                                    placesClient?.let { placesClient ->
+                                        mapViewModel.updatePlacesOfInterest(placesClient)
+                                    }
                                 }
 
                                 navController.navigate(route = MapRoute(query, radius)) {
@@ -139,7 +144,8 @@ class MainActivity : ComponentActivity() {
                                     launchSingleTop = true
                                     restoreState = true
                                 }
-                            }
+                            },
+                            paddingValues = padding
                         )
                     }
                     composable<MapRoute> {
