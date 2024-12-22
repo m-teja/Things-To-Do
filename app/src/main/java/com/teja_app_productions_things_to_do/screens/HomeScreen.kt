@@ -117,14 +117,6 @@ fun HomeScreen(
         currentSearchQuery = homeViewModel.currentSearchQuery.value,
         paddingValues = paddingValues
     )
-
-    SmallFloatingActionButton(
-        onClick = {  },
-        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.secondary
-    ) {
-        Icon(Icons.Filled.ArrowDropDown, "Small floating action button.")
-    }
 }
 
 @Composable
@@ -584,17 +576,14 @@ fun SearchActivityBar(
                 updateCurrentSearch(context, textFieldValue)
             },
         )
-
-        if (textFieldValue.isNotEmpty()) {
-            TextButton(
-                onClick = {
-                    textFieldValue = ""
-                    updateCurrentSearch(context, "")
-                    onClose()
-                }
-            ) {
-                Text("Cancel")
+        TextButton(
+            onClick = {
+                textFieldValue = ""
+                updateCurrentSearch(context, "")
+                onClose()
             }
+        ) {
+            Text("Cancel")
         }
     }
 

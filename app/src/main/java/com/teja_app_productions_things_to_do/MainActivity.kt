@@ -230,11 +230,9 @@ class MainActivity : ComponentActivity() {
         val context = LocalContext.current
         val fusedLocationClient =
             remember { LocationServices.getFusedLocationProviderClient(context) }
-        val userLocation by mapViewModel.userLocation.collectAsState()
 
         UserLocationRequest(
             fusedLocationClient = fusedLocationClient,
-            userLocation = userLocation,
             updateUserLocation = mapViewModel::updateUserLocation,
             onFinished = onFinished
         )

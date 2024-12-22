@@ -32,6 +32,11 @@ class MapViewModel(search: Search) : ViewModel() {
     }
 
     fun updatePlacesOfInterest(placesClient: PlacesClient) {
+        if (_userLocation.value.latitude == 0.0 && _userLocation.value.longitude == 0.0) {
+            _placesOfInterest.value = emptyList()
+            return
+        }
+
         // Specify the list of fields to return.
         val placeFields =
             listOf(Place.Field.DISPLAY_NAME, Place.Field.LOCATION, Place.Field.FORMATTED_ADDRESS)

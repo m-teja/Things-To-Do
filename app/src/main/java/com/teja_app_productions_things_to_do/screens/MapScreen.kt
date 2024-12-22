@@ -131,12 +131,7 @@ fun Map(
                 Toast.makeText(context, "No results found, try a different search query", Toast.LENGTH_LONG).show()
             }
 
-            if (!isLocationGranted(context)) {
-                coroutineScope.launch {
-                    cameraPositionState.position =
-                        CameraPosition.fromLatLngZoom(LatLng(0.0, 0.0), 0f)
-                }
-            } else if (placesOfInterest.isNotEmpty() && !hasSetInitialLocation) {
+            if (isLocationGranted(context) && placesOfInterest.isNotEmpty() && !hasSetInitialLocation) {
                 hasSetInitialLocation = true
 
                 coroutineScope.launch {

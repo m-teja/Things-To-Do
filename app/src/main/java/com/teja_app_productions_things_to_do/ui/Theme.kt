@@ -254,7 +254,7 @@ fun AppTheme(
 ) {
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(
-        color = Color.Transparent
+        color = Color.Black
     )
 
     val colorScheme = darkScheme
