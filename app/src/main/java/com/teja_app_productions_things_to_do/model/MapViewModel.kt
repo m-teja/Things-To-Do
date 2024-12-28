@@ -1,5 +1,7 @@
 package com.teja_app_productions_things_to_do.model
 
+import android.content.Context
+import android.location.LocationManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.maps.model.LatLng
@@ -31,8 +33,13 @@ class MapViewModel(search: Search) : ViewModel() {
         _userLocation.value = latLng
     }
 
-    fun updatePlacesOfInterest(placesClient: PlacesClient) {
-        if (_userLocation.value.latitude == 0.0 && _userLocation.value.longitude == 0.0) {
+    fun updatePlacesOfInterest(context: Context, placesClient: PlacesClient) {
+        val isLocationEnabled =
+            (context.getSystemService(Context.LOCATION_SERVICE) as LocationManager).isProviderEnabled(
+                LocationManager.GPS_PROVIDER
+            )
+
+        if (!isLocationEnabled) {
             _placesOfInterest.value = emptyList()
             return
         }

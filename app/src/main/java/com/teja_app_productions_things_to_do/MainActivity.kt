@@ -6,9 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home
@@ -21,7 +19,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -133,7 +130,7 @@ class MainActivity : ComponentActivity() {
                                 ) {
                                     mapViewModel.updateSearchQuery(Search(query, radius))
                                     placesClient?.let { placesClient ->
-                                        mapViewModel.updatePlacesOfInterest(placesClient)
+                                        mapViewModel.updatePlacesOfInterest(context, placesClient)
                                     }
                                 }
 
@@ -149,6 +146,13 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     composable<MapRoute> {
+                        RequestPermissions(mapViewModel = mapViewModel, onFinished = {
+                            if (!it) {
+                                Toast.makeText(context, "Location permissions were not granted.", Toast.LENGTH_LONG)
+                                    .show()
+                            }
+                        })
+
                         MapScreen(mapViewModel = mapViewModel)
                     }
                     composable<SettingsRoute> {

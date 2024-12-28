@@ -110,12 +110,15 @@ fun Map(
 
     var hasSetInitialLocation by remember { mutableStateOf(false) }
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(userLocation, 12f)
+        position = if (userLocation.latitude == 0.0 && userLocation.longitude == 0.0)
+            CameraPosition.fromLatLngZoom(userLocation, 0f)
+        else
+            CameraPosition.fromLatLngZoom(userLocation, 12f)
     }
+
     var cameraBounds by rememberSaveable {
         mutableStateOf(LatLngBounds(LatLng(0.0, 0.0), LatLng(0.0, 0.0)))
     }
-
 
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
@@ -128,10 +131,12 @@ fun Map(
         properties = MapProperties(isMyLocationEnabled = isLocationGranted(context)),
         onMapLoaded = {
             if (placesOfInterest.isEmpty() && searchQuery.isNotEmpty()) {
-                Toast.makeText(context, "No results found, try a different search query", Toast.LENGTH_LONG).show()
-            }
-
-            if (isLocationGranted(context) && placesOfInterest.isNotEmpty() && !hasSetInitialLocation) {
+                Toast.makeText(
+                    context,
+                    "No results found, check your location settings and try a different search query",
+                    Toast.LENGTH_LONG
+                ).show()
+            } else if (isLocationGranted(context) && placesOfInterest.isNotEmpty() && !hasSetInitialLocation) {
                 hasSetInitialLocation = true
 
                 coroutineScope.launch {
@@ -231,6 +236,11 @@ fun Map(
                     }
                 }
 
+                val dummyLocation = LatLng(
+                    userLocation.latitude - (location.latitude - userLocation.latitude),
+                    userLocation.longitude - (location.longitude - userLocation.longitude)
+                )
+                latLngBuilder.include(dummyLocation)
                 latLngBuilder.include(location)
             }
 
