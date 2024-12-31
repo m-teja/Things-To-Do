@@ -26,7 +26,6 @@ fun UserLocationRequest(
         it?.let {
             // Update the user's location in the state
             val userLatLng = LatLng(it.latitude, it.longitude)
-            println(userLatLng)
             updateUserLocation(userLatLng)
             onFinished(true)
         }

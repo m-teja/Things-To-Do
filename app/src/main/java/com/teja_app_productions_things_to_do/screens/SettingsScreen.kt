@@ -27,11 +27,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.MobileAds
-import com.google.android.gms.ads.RequestConfiguration
 import com.teja_app_productions_things_to_do.ui.AppTheme
-import com.teja_app_productions_things_to_do.utils.AdsUtil.SETTINGS_TEST_AD_UNIT_ID
-import com.teja_app_productions_things_to_do.utils.AdsUtil.TEST_DEVICE_HASHED_ID
+import com.teja_app_productions_things_to_do.utils.AdsUtil.SETTINGS_AD_UNIT_ID
 import com.teja_app_productions_things_to_do.utils.SharedPreferencesUtil
 import com.teja_app_productions_things_to_do.utils.SharedPreferencesUtil.DELETE_KEY
 
@@ -56,7 +53,7 @@ fun SettingsScreen(
 
     var isDarkModeChecked by remember { mutableStateOf(SharedPreferencesUtil.isDarkModeMap(context)) }
 
-    Column (
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(10.dp),
@@ -106,7 +103,8 @@ fun SettingsScreen(
 
                     updateCurrentFilter(context, emptySet())
 
-                    Toast.makeText(context, "Activity list has been reset", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Activity list has been reset", Toast.LENGTH_LONG)
+                        .show()
                 }
             ) {
                 Text("Reset activity list")
@@ -120,7 +118,7 @@ fun SettingsScreen(
 
                 adView.apply {
                     setAdSize(AdSize.BANNER)
-                    adUnitId = SETTINGS_TEST_AD_UNIT_ID
+                    adUnitId = SETTINGS_AD_UNIT_ID
                     loadAd(AdRequest.Builder().build())
                 }
 

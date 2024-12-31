@@ -23,7 +23,7 @@ object AdsUtil {
     fun loadMapInterstitial(context: Context) {
         InterstitialAd.load(
             context,
-            MAP_TEST_AD_UNIT_ID,
+            MAP_AD_UNIT_ID,
             AdRequest.Builder().build(),
             object : InterstitialAdLoadCallback() {
                 override fun onAdFailedToLoad(adError: LoadAdError) {

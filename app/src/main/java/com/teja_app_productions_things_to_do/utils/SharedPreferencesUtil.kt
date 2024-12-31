@@ -9,7 +9,7 @@ object SharedPreferencesUtil {
     private const val IS_FIRST_TIME = "THINGS_TO_DO_IS_FIRST_TIME"
     private const val NUM_MAP_VISIT = "THINGS_TO_DO_NUM_MAP_VISIT"
 
-    const val MAP_VISIT_COUNT_BEFORE_ADS = 8
+    const val MAP_VISIT_COUNT_BEFORE_ADS = 10
     const val DEFAULT_RADIUS = 100
 
     fun isDarkModeMap(context: Context): Boolean {
@@ -56,7 +56,7 @@ object SharedPreferencesUtil {
             androidx.preference.PreferenceManager.getDefaultSharedPreferences(context) ?: return
 
         with(sharedPreferences.edit()) {
-            putInt(NUM_MAP_VISIT, sharedPreferences.getInt(NUM_MAP_VISIT, MAP_VISIT_COUNT_BEFORE_ADS) + 1)
+            putInt(NUM_MAP_VISIT, sharedPreferences.getInt(NUM_MAP_VISIT, 0) + 1)
             apply()
         }
     }
