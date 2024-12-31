@@ -88,8 +88,6 @@ fun MapScreen(
 @Composable
 fun LoadInterstitialAdIfApplicable() {
     val context = LocalContext.current
-    println(SharedPreferencesUtil.getNumMapVisit(context))
-    println(SharedPreferencesUtil.MAP_VISIT_COUNT_BEFORE_ADS)
     if (SharedPreferencesUtil.getNumMapVisit(context) >= SharedPreferencesUtil.MAP_VISIT_COUNT_BEFORE_ADS) {
         AdsUtil.showMapInterstitial(context as Activity, onAdDismissed = {})
         SharedPreferencesUtil.resetNumMapVisit(context)
